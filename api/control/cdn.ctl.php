@@ -243,7 +243,7 @@ class CdnControl extends Control
 	{
 		global $db_cfg;
 		$dsn = $db_cfg['default']['dsn'];
-		return new PDO($dsn);
+		return ep_new_pdo($dsn);
 	}
 
 	public function test()

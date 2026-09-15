@@ -57,6 +57,11 @@ class Curl
 		$this->result = curl_exec($this->obj);
 		$this->error = curl_error($this->obj);
 		curl_close($this->obj);
+
+		if ($this->result === false) {
+			return false;
+		}
+
 		return json_decode($this->result, true);
 	}
 }

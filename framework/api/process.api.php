@@ -83,10 +83,18 @@ class ProcessApi extends API
 	{
 		$whm_file_name = $GLOBALS['safe_dir'] . '../webadmin/' . EASYPANEL_SHELL_WHM . '.whm';
 
-		if (!file_exists($whm_file_name)) {
-			$cmd = $this->get_easypanel_shell();
-			$fp = fopen($whm_file_name, 'wb');
-			$str = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n";
+		if (file_exists($whm_file_name)) {
+			return;
+		}
+
+		$cmd = $this->get_easypanel_shell();
+		$fp = fopen($whm_file_name, 'wb');
+
+		if (!$fp) {
+			return;
+		}
+
+		$str = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n";
 			$str .= "<whm version=\"1.0\">\r\n";
 			$str .= "<extend type='shell' name='daemon' async='1' merge='0'>\r\n";
 			$str .= "<commands runas='system'>\r\n";
@@ -101,7 +109,6 @@ class ProcessApi extends API
 			$str .= '</whm>';
 			fwrite($fp, $str);
 			fclose($fp);
-		}
 	}
 }
 

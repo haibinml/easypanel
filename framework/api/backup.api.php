@@ -345,7 +345,7 @@ class BackupAPI extends API
 		}
 
 		$dsn = 'mysql:host=localhost;port=' . $this->db_port;
-		$pdo = new PDO($dsn, $this->db_user, $this->db_passwd);
+		$pdo = ep_new_pdo($dsn, $this->db_user, $this->db_passwd);
 
 		if (!$pdo) {
 			$this->showMsg("mysql :pdo not connect\n");
@@ -354,13 +354,15 @@ class BackupAPI extends API
 
 		$result = $pdo->query('SHOW VARIABLES');
 
-		foreach ($result as $r) {
-			if ($r['Variable_name'] == 'log_bin') {
-				$this->log_bin = 'on';
-			}
+		if ($result) {
+			foreach ($result as $r) {
+				if ($r['Variable_name'] == 'log_bin') {
+					$this->log_bin = 'on';
+				}
 
-			if ($r['Variable_name'] == 'datadir') {
-				$datadir = $r['Value'];
+				if ($r['Variable_name'] == 'datadir') {
+					$datadir = $r['Value'];
+				}
 			}
 		}
 

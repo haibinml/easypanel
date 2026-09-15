@@ -10,7 +10,7 @@ class SlaveAPI extends API
 			return false;
 		}
 
-		if ($slave['ns'] != $arr['ns'] || $oldslave != $arr['slave']) {
+		if (is_array($slave) && ($slave['ns'] != $arr['ns'] || $oldslave != $arr['slave'])) {
 			return apicall('bind', 'bindInit', array());
 		}
 

@@ -9,7 +9,7 @@ class SlaveControl extends Control
 		$slave = daocall('slaves', 'slavesGet', array($arr));
 		$json['code'] = 400;
 
-		if (!$slave) {
+		if (!is_array($slave) || !$slave) {
 			$json['msg'] = '该节点不存在';
 			exit(json_encode($json));
 		}
@@ -22,8 +22,10 @@ class SlaveControl extends Control
 		}
 
 		if ($check_result = apicall('dnssync', 'test_dns', array($node))) {
-			$json['code'] = $check_result->getCode();
-			$json['msg'] = (string) $check_result->get('error');
+			if (is_object($check_result)) {
+				$json['code'] = $check_result->getCode();
+				$json['msg'] = (string) $check_result->get('error');
+			}
 		}
 
 		exit(json_encode($json));
@@ -32,7 +34,7 @@ class SlaveControl extends Control
 	public function slaveGetAll()
 	{
 		$slaves = daocall('slaves', 'slavesGet', array());
-		$json['count'] = count($slaves);
+		$json['count'] = is_array($slaves) ? count($slaves) : 0;
 		$json['slaves'] = $slaves;
 		exit(json_encode($json));
 	}
@@ -145,7 +147,7 @@ class SlaveControl extends Control
 		}
 
 		$slaves = daocall('slaves', 'slavesGet', array($arr));
-		$json['count'] = count($slaves);
+		$json['count'] = is_array($slaves) ? count($slaves) : 0;
 		exit(json_encode($json));
 	}
 }

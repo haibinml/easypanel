@@ -200,18 +200,19 @@ class PhpsetControl extends Control
 		if(!is_dir($this->ini_dir)) mkdir($this->ini_dir);
 
 		$vhostinfo = apicall('vhostinfo', 'get2', array(getRole('vhost'), 'moduleversion', 101));
-		$this->php_name = $vhostinfo['value'];
+		$this->php_name = is_array($vhostinfo) && isset($vhostinfo['value']) ? $vhostinfo['value'] : '';
 	}
 
 	private function getCurrentExtensions($ini_data)
 	{
 		$phpver = substr($this->php_name,-2,1).'.'.substr($this->php_name,-1,1);
+		if (!isset($this->php_extension_dir[$phpver])) return [];
 		$extension_dir = '/vhs/kangle/ext/'.$this->php_name.$this->php_extension_dir[$phpver];
 		if(!is_dir($extension_dir)) return [];
 
 		$file_list = [];
 		$files = scandir($extension_dir);
-		foreach($files as $file){
+		foreach(ep_iter($files) as $file){
             if($file == '.' || $file == '..') continue;
 			$file_list[] = $file;
 		}
@@ -247,7 +248,10 @@ class PhpsetControl extends Control
 	private function getCurrentConfigs($ini_data)
 	{
 		$templete_file = '/vhs/kangle/ext/'.$this->php_name.'/php-templete.ini';
-		$templete_data = file_get_contents($templete_file);
+		$templete_data = @file_get_contents($templete_file);
+		if ($templete_data === false) {
+			$templete_data = '';
+		}
 
 		$list = [];
 		foreach($this->php_configs as $name=>$row){
@@ -306,8 +310,8 @@ class PhpsetControl extends Control
 	{
 		$vhost = getRole('vhost');
 		$versions = modcall('php', 'php_get_version');
-		$v = trim($_REQUEST['v']);
-		if(empty($v) || !array_key_exists($v, $versions))exit('参数错误');
+		$v = trim(ep_request('v'));
+		if(empty($v) || !is_array($versions) || !array_key_exists($v, $versions))exit('参数错误');
 
 		@unlink($this->ini_dir.'/php-'.$vhost.'.ini');
 

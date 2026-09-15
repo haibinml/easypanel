@@ -21,6 +21,11 @@ if ($_SERVER['argc'] < 2) {
 $argv = $_SERVER['argv'];
 $program = array_shift($argv);
 $action = array_shift($argv);
+
+if (!preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $action)) {
+	exit('invalid action');
+}
+
 @apicall('shell', $action, array($argv));
 
 ?>

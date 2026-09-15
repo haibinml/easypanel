@@ -180,7 +180,7 @@ class RewriteControl extends Control
 		$tables = $this->access->listTable();
 		$table_finded = false;
 
-		foreach ($tables as $table) {
+		foreach (ep_iter($tables) as $table) {
 			if ($table == TABLENAME) {
 				$table_finded = true;
 				break;

@@ -52,7 +52,7 @@ class ProtectionControl extends Control
 		$table_finded = false;
 
 		if ($tables) {
-			foreach ($tables as $table) {
+			foreach (ep_iter($tables) as $table) {
 				if ($table == BEGIN) {
 					if ($table == DENY_PATH_TABLE) {
 						$table_finded = true;

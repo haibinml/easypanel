@@ -9,6 +9,7 @@ class CheckparamAPI extends API
 	 */
 	public function checkParam($param, $grade = 0)
 	{
+		$param = ep_str($param);
 		$param = str_ireplace('\'', '', $param);
 		$param = str_ireplace('"', '', $param);
 		$param = str_ireplace(';', '', $param);
@@ -25,6 +26,11 @@ class CheckparamAPI extends API
 
 	public function checkArrParam($arr, $grade = 0)
 	{
+		if (!is_array($arr)) {
+			return array();
+		}
+
+		$a = array();
 		foreach ($arr as $key => $value) {
 			$a[$key] = $this->checkParam($value, $grade);
 		}

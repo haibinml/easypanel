@@ -31,9 +31,17 @@ class AnticcControl extends Control
 			foreach ($result->children() as $chain) {
 				foreach ($chain->children() as $name=>$ch) {
 					if($name == 'mark_anti_cc'){
-						$msg = file_get_contents($user['doc_root'] . '/access.xml');
-						preg_match("/<html id=\'anticc_(.*?)\'>/", $msg, $match);
-						$mode = $match[1];
+						// WHM decodes XML entities in the msg attribute for us. Reading
+						// access.xml directly fails after kangle correctly escapes the
+						// embedded challenge HTML during serialization.
+						$msg = (string) $ch['msg'];
+						if ($msg === '' && is_array($user)) {
+							$msg = @file_get_contents($user['doc_root'] . '/access.xml');
+						}
+						$mode = 'redirect';
+						if (preg_match('/<html\s+id=[\'\"]anticc_([^\'\"]+)[\'\"]/', $msg, $match)) {
+							$mode = $match[1];
+						}
 						$cc = array('request' => (string) $ch['request'], 'second' => (string) $ch['second'], 'wl' => (string) $ch['wl'], 'flush' => (string) $ch['flush'], 'fix_url' => (string) $ch['fix_url'], 'skip_cache' => (string) $ch['skip_cache'], 'mode' => $mode);
 
 						$this->_tpl->assign('cc', $cc);
@@ -219,7 +227,7 @@ class AnticcControl extends Control
 		$tables = $this->access->listTable();
 		$table_finded = false;
 
-		foreach ($tables as $table) {
+		foreach (ep_iter($tables) as $table) {
 			if ($table == TABLENAME) {
 				$table_finded = true;
 				break;

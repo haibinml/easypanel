@@ -15,7 +15,7 @@ class SslControl extends Control
 	{
 		$vhost = getRole('vhost');
 		$user = daocall('vhost', 'getVhost', array($vhost));
-		if (strpos($user['port'], 's')===false) {
+		if (!is_array($user) || !isset($user['port']) || strpos($user['port'], 's')===false) {
 			exit("<script language='javascript'>alert('您的账号不支持设置SSL证书');history.go(-1);</script>");
 		}
 		change_to_user($user['uid'], $user['gid']);
@@ -75,15 +75,15 @@ class SslControl extends Control
 
 	public function ssl()
 	{
-		$certificate = $_REQUEST['certificate'];
-		$certificate_key = $_REQUEST['certificate_key'];
+		$certificate = ep_str(isset($_REQUEST['certificate']) ? $_REQUEST['certificate'] : '');
+		$certificate_key = ep_str(isset($_REQUEST['certificate_key']) ? $_REQUEST['certificate_key'] : '');
 		$vhost = getRole('vhost');
 		$user = $_SESSION['user'][$vhost];
 
 		if (!empty($certificate) && !empty($certificate_key)){
 			$check = $this->check_cert($certificate, $certificate_key);
 			if($check !== true){
-				exit("<script language='javascript'>alert('{$check}');history.go(-1);</script>");
+				exit("<script language='javascript'>alert('".ep_js_str($check)."');history.go(-1);</script>");
 			}
 		}
 
@@ -143,6 +143,7 @@ class SslControl extends Control
 	public function sslRewrite()
 	{
 		$find_result = $this->access->findChain('BEGIN', '!ssl_rewrite');
+		$result = false;
 		$status = intval($_REQUEST['status']);
 
 		switch ($status) {
@@ -180,7 +181,7 @@ class SslControl extends Control
 		}
 		$info = $info[0];
 		$user = daocall('vhost', 'getVhost', array($vhost));
-		if (strpos($user['port'], 's')===false) {
+		if (!is_array($user) || !isset($user['port']) || strpos($user['port'], 's')===false) {
 			exit("<script language='javascript'>alert('您的账号不支持设置SSL证书');history.go(-1);</script>");
 		}
 		if ($user['cdn']==0) {
@@ -259,14 +260,14 @@ class SslControl extends Control
 			exit("<script language='javascript'>alert('域名不存在');history.go(-1);</script>");
 		}
 		$info = $info[0];
-		$certificate = $_REQUEST['certificate'];
-		$certificate_key = $_REQUEST['certificate_key'];
+		$certificate = ep_str(isset($_REQUEST['certificate']) ? $_REQUEST['certificate'] : '');
+		$certificate_key = ep_str(isset($_REQUEST['certificate_key']) ? $_REQUEST['certificate_key'] : '');
 		$user = $_SESSION['user'][$vhost];
 
 		if (!empty($certificate) && !empty($certificate_key)){
 			$check = $this->check_cert($certificate, $certificate_key);
 			if($check !== true){
-				exit("<script language='javascript'>alert('{$check}');history.go(-1);</script>");
+				exit("<script language='javascript'>alert('".ep_js_str($check)."');history.go(-1);</script>");
 			}
 		}
 		
@@ -338,6 +339,7 @@ class SslControl extends Control
 		}
 		$table_name = '!ssl_rewrite_'.substr(md5($domain),0,6);
 		$find_result = $this->access->findChain('BEGIN', $table_name);
+		$result = false;
 		$status = intval($_REQUEST['status']);
 
 		switch ($status) {

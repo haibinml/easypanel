@@ -15,7 +15,12 @@ class DomainControl extends Control
 	public function show()
 	{
 		$vhost = getRole('vhost');
-		$user = $_SESSION['user'][$vhost];
+		$user = isset($_SESSION['user'][$vhost]) ? $_SESSION['user'][$vhost] : array();
+
+		if (!is_array($user)) {
+			$user = array();
+		}
+
 		$cname_host = daocall('setting', 'get', array('cname_host'));
 
 		if ($cname_host) {
@@ -32,7 +37,7 @@ class DomainControl extends Control
 			$domains = array();
 			$id = 0;
 
-			foreach ($list as $domain) {
+			foreach (ep_iter($list) as $domain) {
 				$isSsl = 0;
 				$proto = null;
 				if(substr($domain['value'], 0, 9) == 'server://'){
@@ -71,8 +76,9 @@ class DomainControl extends Control
 		}
 		else {
 			$id = 0;
+			$li = array();
 
-			foreach ($list as $domain) {
+			foreach (ep_iter($list) as $domain) {
 				$domain['id'] = $id;
 				$li[] = $domain;
 				++$id;
@@ -87,6 +93,7 @@ class DomainControl extends Control
 			$this->_tpl->assign('ssl', 1);
 		}
 
+		$list = ep_iter($list);
 		$sum = count($list);
 		$this->_tpl->assign('sum', $sum);
 		$this->_tpl->assign('list', $list);
@@ -106,13 +113,21 @@ class DomainControl extends Control
 	private function get_main_domain($domain){
 		if(!strpos($domain,'.')) return null;
 		if(filter_var($domain, FILTER_VALIDATE_IP))return $domain;
-		$top_domain_list = file_get_contents(dirname(__FILE__) . '/domain_root.txt');
+		$top_domain_list = @file_get_contents(dirname(__FILE__) . '/domain_root.txt');
+		if ($top_domain_list === false) {
+			$top_domain_list = '';
+		}
 		$top_domain_list = explode("\n", $top_domain_list);
 		$data = explode('.', $domain);
 		$co_ta = count($data);
+
+		if ($co_ta < 2) {
+			return null;
+		}
+
 		$domain_name = $data[$co_ta-2].'.'.$data[$co_ta-1];
 		if(in_array('.'.$domain_name, $top_domain_list)){
-			if($data[$co_ta-3] === '' || $data[$co_ta-3] === null) return null;
+			if ($co_ta < 3 || $data[$co_ta-3] === '' || $data[$co_ta-3] === null) return null;
 			$domain_name = $data[$co_ta-3].'.'.$domain_name;
 		}
 		return $domain_name;
@@ -122,9 +137,9 @@ class DomainControl extends Control
 	{
 		$vhost = getRole('vhost');
 		$user = $_SESSION['user'][$vhost];
-		$domain = strtolower(trim($_REQUEST['domain']));
+		$domain = strtolower(trim(ep_request('domain')));
 		$ret = daocall('vhostinfo', 'getInfo', array($vhost, 0, $domain));
-		if($ret[0]){
+		if (is_array($ret) && !empty($ret[0])) {
 			$result['code'] = 0;
 			$value = $ret[0]['value'];
 			if ($user['cdn']) {
@@ -168,9 +183,9 @@ class DomainControl extends Control
 
 	public function add()
 	{
-		$domain = strtolower(trim($_REQUEST['domain']));
-		$subdir = trim($_REQUEST['subdir']);
-		$proto = trim($_REQUEST['proto']);
+		$domain = strtolower(trim(ep_request('domain')));
+		$subdir = trim(ep_request('subdir'));
+		$proto = trim(ep_request('proto'));
 		$vhost = getRole('vhost');
 		$replace = intval($_REQUEST['replace']);
 		$isreplace = false;
@@ -183,9 +198,9 @@ class DomainControl extends Control
 			if ($ret) {
 				if (($ret['vhost'] != $vhost)) {
 					$vhostinfo = daocall('vhost', 'getVhost', array($ret['vhost']));
-					if($vhostinfo['status']==1){
+					if(is_array($vhostinfo) && $vhostinfo['status']==1){
 						//如果是已暂停的用户，可以强制取消绑定域名
-						if (!apicall('vhost', 'delInfo', array($ret['vhost'], $_REQUEST['domain'], 0, null))) {
+						if (!apicall('vhost', 'delInfo', array($ret['vhost'], $domain, 0, null))) {
 							exit('该域名已被他人绑定，请联系管理员(del)');
 						}
 						$isreplace = false;
@@ -205,8 +220,8 @@ class DomainControl extends Control
 				if ($ret) {
 					if (($ret['vhost'] != $vhost)) {
 						$vhostinfo = daocall('vhost', 'getVhost', array($ret['vhost']));
-						if($vhostinfo['status']==1){
-							if (!apicall('vhost', 'delInfo', array($ret['vhost'], $_REQUEST['domain'], 0, null))) {
+						if(is_array($vhostinfo) && $vhostinfo['status']==1){
+							if (!apicall('vhost', 'delInfo', array($ret['vhost'], $domain, 0, null))) {
 								exit('该域名已被他人绑定，请联系管理员(del)');
 							}
 							$isreplace = false;
@@ -290,7 +305,7 @@ class DomainControl extends Control
 			}
 			if($isreplace){
 				$ret = daocall('vhostinfo', 'getInfo', array($vhost, 0, $domain));
-				if($ret[0]){
+				if(is_array($ret) && !empty($ret[0])){
 					if (strncasecmp($ret[0]['value'], 'server://', 9) == 0 && strpos($ret[0]['value'], ';' . $domain . '.crt|' . $domain . '.key')!==false){
 						$subdir .= ';' . $domain . '.crt|' . $domain . '.key';
 					}
@@ -349,28 +364,34 @@ class DomainControl extends Control
 
 	public function del()
 	{
+		$domain = ep_safe_name(strtolower(trim(ep_request('domain'))));
+
+		if ($domain === '') {
+			exit('删除域名失败');
+		}
+
 		if ($vhost_domain = daocall('setting', 'get', array('vhost_domain'))) {
-			$find_vhost_domain = strstr($_REQUEST['domain'], $vhost_domain);
+			$find_vhost_domain = strstr($domain, $vhost_domain);
 
 			if ($find_vhost_domain) {
 				$vhost = getRole('vhost');
 				$vhostinfo = daocall('vhost', 'getVhost', array($vhost));
 
-				if (0 < $vhostinfo['recordid']) {
+				if (is_array($vhostinfo) && 0 < $vhostinfo['recordid']) {
 					@apicall('record', 'delDnsdunRecord', array($vhostinfo['recordid']));
 				}
 			}
 		}
 
-		if (!apicall('vhost', 'delInfo', array(getRole('vhost'), $_REQUEST['domain'], 0, null))) {
+		if (!apicall('vhost', 'delInfo', array(getRole('vhost'), $domain, 0, null))) {
 			exit('删除域名失败');
 		}
 
 		$vhost = getRole('vhost');
 		$user = $_SESSION['user'][$vhost];
-		if ($user['cdn']){
-			$file = $user['doc_root'] . '/' . $_REQUEST['domain'] . '.crt';
-			$keyfile = $user['doc_root'] . '/' . $_REQUEST['domain'] . '.key';
+		if (is_array($user) && !empty($user['cdn']) && !empty($user['doc_root'])){
+			$file = $user['doc_root'] . '/' . $domain . '.crt';
+			$keyfile = $user['doc_root'] . '/' . $domain . '.key';
 			if(file_exists($file)){
 				unlink($file);
 			}

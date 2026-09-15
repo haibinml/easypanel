@@ -16,20 +16,26 @@ class SsoControl extends Control
 			++$i;
 		}
 
-		$url = $_REQUEST['url'] . '&r=' . $sess_key;
+		$url = ep_safe_header_url(isset($_REQUEST['url']) ? $_REQUEST['url'] : '');
+
+		if ($url === '') {
+			exit('invalid url');
+		}
+
+		$url = $url . '&r=' . $sess_key;
 		$_SESSION['sess_key'] = $sess_key;
 		header('Cache-Control: no-cache,no-store');
-		header('Location: ' . $url);
+		header('Location: ' . ep_safe_header_url($url));
 		exit();
 	}
 
 	public function login()
 	{
-		if ($_SESSION['sess_key'] == '') {
+		if (empty($_SESSION['sess_key'])) {
 			exit('error,sess_key is empty');
 		}
 
-		$name = trim($_REQUEST['name']);
+		$name = trim(ep_request('name'));
 
 		if (!$name) {
 			exit('param error');
@@ -41,10 +47,11 @@ class SsoControl extends Control
 			exit('skey error');
 		}
 
-		$str = $_REQUEST['r'] . $name . $_SESSION['sess_key'] . $skey;
+		$str = ep_request('r') . $name . $_SESSION['sess_key'] . $skey;
 		$md5str = md5($str);
-		if (strtolower($md5str) === $_REQUEST['s'] && $_REQUEST['s'] != '') {
-			registerRole('vhost', $_REQUEST['name']);
+		$sign = ep_request('s');
+		if (ep_hash_equals(strtolower($md5str), strtolower($sign)) && $sign != '') {
+			registerRole('vhost', $name);
 			$_SESSION['login_from'] = 'vhost';
 			header('Location: index.php');
 			exit();

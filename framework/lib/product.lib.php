@@ -64,7 +64,7 @@ abstract class Product
 		if ($suser['edit'] == 1) {
 			$sync_db = false;
 
-			if (0 < $vhost['db_quota']) {
+			if (is_array($vhost) && 0 < $vhost['db_quota']) {
 				if ($vhost['db_type'] != $suser['db_type'] || $suser['db_quota'] == 0) {
 					$db = apicall('nodes', 'makeDbProduct', array('localhost', $vhost['db_type']));
 

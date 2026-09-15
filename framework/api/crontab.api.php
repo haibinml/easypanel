@@ -7,7 +7,7 @@ class CrontabAPI extends API
 	public function runDay()
 	{
 		daocall('vhost', 'expireUser');
-		$nodes = daocall('nodes', 'listNodes');
+		$nodes = ep_iter(daocall('nodes', 'listNodes'));
 		$i = 0;
 
 		while ($i < count($nodes)) {

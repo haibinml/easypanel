@@ -19,7 +19,7 @@ class AccessControl extends Control
 		header('Content-Type: application/octet-stream');
 		$list = daocall('filter', 'listFilter', array());
 
-		foreach ($list as $key) {
+		foreach (ep_iter($list) as $key) {
 			echo $key['value'] . "\r\n";
 		}
 
@@ -139,7 +139,7 @@ class AccessControl extends Control
 		$tables = $access->listTable();
 		$table_finded = false;
 
-		foreach ($tables as $table) {
+		foreach (ep_iter($tables) as $table) {
 			if ($table == DENY_FILTER_TABLE) {
 				$table_finded = true;
 				break;
@@ -165,7 +165,7 @@ class AccessControl extends Control
 		$tables = $access->listTable();
 		$table_finded = false;
 
-		foreach ($tables as $table) {
+		foreach (ep_iter($tables) as $table) {
 			if ($table == DENY_IP_TABLE) {
 				$table_finded = true;
 				break;

@@ -1,11 +1,12 @@
 <!--#start 60 -->
-<!--#include etc/vh_db.xml  -->
-{{if $win}}
-<!--#include etc/dbadmin.xml  -->
-{{/if}}
 <config>
+<CreateProcess>AsUser</CreateProcess>
+<log level='3' logs_day='{{$setting.logs_day}}' rotate_time='0 0 * * *'/>
 <vhs>
-<api name='cron' file='bin/cron.{{$dso_ext}}'  life_time='60'></api>
+<vh_database
+driver='{{$driver}}'
+dbname='etc/vhs.db'
+/>
 <env dev='{{$dev}}'/>
 <!-- old style -->
 <vh_templete name='html' inherit='0' fflow='1' index='index.html,index.htm' log_mkdir='1' logs_day='{{$setting.logs_day}}' log_rotate_time='0 0 * * *' log_file='/nolog' app_share='0'>

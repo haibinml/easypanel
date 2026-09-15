@@ -1,7 +1,7 @@
 <?php
-define(ENV_CHECK_FAILED, 0);
-define(ENV_CHECK_SUCCESS, 1);
-define(ENV_CHECK_NOT_FOUND, 2);
+define('ENV_CHECK_FAILED', 0);
+define('ENV_CHECK_SUCCESS', 1);
+define('ENV_CHECK_NOT_FOUND', 2);
 class TplenvAPI extends API
 {
 	public function __construct()
@@ -12,11 +12,11 @@ class TplenvAPI extends API
 
 	public function hasEnv($templete, $subtemplete)
 	{
-		if (0 < count($GLOBALS['tplenv'][$templete])) {
+		if (!empty($GLOBALS['tplenv'][$templete])) {
 			return true;
 		}
 
-		if (0 < count($GLOBALS['tplenv'][$templete . ':' . $subtemplete])) {
+		if (!empty($GLOBALS['tplenv'][$templete . ':' . $subtemplete])) {
 			return true;
 		}
 
@@ -47,7 +47,7 @@ class TplenvAPI extends API
 
 	public function checkEnv($name, $value, $arr)
 	{
-		if (!is_array($arr[$name])) {
+		if (!isset($arr[$name]) || !is_array($arr[$name])) {
 			return ENV_CHECK_NOT_FOUND;
 		}
 

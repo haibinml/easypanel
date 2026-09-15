@@ -4,7 +4,7 @@ class WebappControl extends Control
 {
 	public function index()
 	{
-		$list = daocall('vhostwebapp', 'getAll', array(getRole('vhost')));
+		$list = ep_iter(daocall('vhostwebapp', 'getAll', array(getRole('vhost'))));
 		$sum = count($list);
 		$this->_tpl->assign('sum', $sum);
 		$this->_tpl->assign('list', $list);
@@ -19,9 +19,10 @@ class WebappControl extends Control
 			exit('不能连接节点，请联系管理员');
 		}
 
-		$url = strcasecmp($_SERVER['HTTPS'], 'ON') == 0 ? 'https://' : 'http://';
-		$url .= $_SERVER['HTTP_HOST'];
-		$url .= $_SERVER['PHP_SELF'];
+		$https = isset($_SERVER['HTTPS']) ? $_SERVER['HTTPS'] : '';
+		$url = strcasecmp($https, 'ON') == 0 ? 'https://' : 'http://';
+		$url .= isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
+		$url .= isset($_SERVER['PHP_SELF']) ? $_SERVER['PHP_SELF'] : '';
 		$url .= '?c=webapp';
 		$webapp_url = daocall('setting', 'get', array('webapp_url'));
 
@@ -33,11 +34,11 @@ class WebappControl extends Control
 		$gourl .= '&url=' . urlencode($url);
 		$file_exts = $result->getAll('file_ext');
 
-		foreach ($file_exts as $file_ext) {
+		foreach (ep_iter($file_exts) as $file_ext) {
 			$gourl .= '&file_ext[]=' . $file_ext;
 		}
 
-		header('Location: ' . $gourl);
+		header('Location: ' . ep_safe_header_url($gourl));
 		exit();
 	}
 
@@ -104,10 +105,14 @@ class WebappControl extends Control
 			$appinfo = apicall('webapp', 'getInfo', array($appid));
 
 			if (!$appinfo) {
-				exit('不能得到程序信息，请联系管理员.' . $appinfo->err_msg);
+				exit('不能得到程序信息，请联系管理员.');
 			}
 
 			$whm = apicall('nodes', 'makeWhm', array($node_name));
+
+			if (!$whm) {
+				exit('不能下载程序，请联系管理员。');
+			}
 			$whmcall = new WhmCall('webapp.whm', 'download');
 			$whmcall->addParam('appid', $appinfo['appid']);
 			$whmcall->addParam('url', $appinfo['url']);
@@ -138,6 +143,11 @@ class WebappControl extends Control
 
 		$node_name = apicall('vhost', 'getNode', array(getRole('vhost')));
 		$whm = apicall('nodes', 'makeWhm', array($node_name));
+
+		if (!$whm) {
+			exit('删除程序错误，请联系管理员.');
+		}
+
 		$whmcall = new WhmCall('webapp.whm', 'uninstall');
 		$whmcall->addParam('appid', $app['appid']);
 		$whmcall->addParam('appdir', $appinfo['appdir']);
@@ -176,6 +186,11 @@ class WebappControl extends Control
 
 		$node_name = apicall('vhost', 'getNode', array(getRole('vhost')));
 		$whm = apicall('nodes', 'makeWhm', array($node_name));
+
+		if (!$whm) {
+			exit('<result code=\'500\' msg=\'不能连接节点\'/>');
+		}
+
 		$whmcall = new WhmCall('webapp.whm', 'install');
 		$whmcall->addParam('appid', $appid);
 		$whmcall->addParam('appdir', $appinfo['appdir']);
@@ -189,22 +204,27 @@ class WebappControl extends Control
 
 		$result = $whm->call($whmcall);
 		$install = $appinfo['install'];
-		$str = '<result code=\'' . $result->getCode() . '\'';
+
+		if (!$result) {
+			exit('<result code=\'500\' id=\'' . intval($id) . '\'/>');
+		}
+
+		$str = '<result code=\'' . ep_xml_escape($result->getCode()) . '\'';
 
 		if ($install != '') {
 			$url = 'http://' . $domain;
 
-			if ($dir[0] != '/') {
+			if (substr(ep_str($dir), 0, 1) != '/') {
 				$url .= '/';
 			}
 
 			$url .= $dir;
 			$url .= $install;
-			$str .= ' install=\'' . $url . '\'';
+			$str .= ' install=\'' . ep_xml_escape($url) . '\'';
 		}
 
-		$str .= ' id=\'' . $id . '\' ';
-		$str .= ' phy_dir=\'' . $phy_dir . '\' ';
+		$str .= ' id=\'' . intval($id) . '\' ';
+		$str .= ' phy_dir=\'' . ep_xml_escape($phy_dir) . '\' ';
 		$str .= '/>';
 		exit($str);
 	}
@@ -216,10 +236,16 @@ class WebappControl extends Control
 		$str .= '<result code=\'';
 		$node_name = apicall('vhost', 'getNode', array(getRole('vhost')));
 		$whm = apicall('nodes', 'makeWhm', array($node_name));
-		$op = $_REQUEST['op'];
+		$op = ep_request('op');
 		$whmcall = new WhmCall('webapp.whm', $op == 'install' ? 'query_install' : 'query_uninstall');
 		$whmcall->addParam('vh', getRole('vhost'));
-		$whmcall->addParam('phy_dir', $_REQUEST['phy_dir']);
+		$whmcall->addParam('phy_dir', ep_request('phy_dir'));
+
+		if (!$whm) {
+			$str .= '500\'/>';
+			exit($str);
+		}
+
 		$result = $whm->call($whmcall, 10);
 
 		if (!$result) {
@@ -237,11 +263,17 @@ class WebappControl extends Control
 	{
 		header('Content-Type: text/xml; charset=utf-8');
 		$str = '<?xml version="1.0" encoding="utf-8"?>';
-		$str .= '<result appid=\'' . $_REQUEST['appid'] . '\' code=\'';
+		$str .= '<result appid=\'' . ep_xml_escape(ep_request('appid')) . '\' code=\'';
 		$node_name = apicall('vhost', 'getNode', array(getRole('vhost')));
 		$whm = apicall('nodes', 'makeWhm', array($node_name));
 		$whmcall = new WhmCall('webapp.whm', 'query_download');
-		$whmcall->addParam('appid', $_REQUEST['appid']);
+		$whmcall->addParam('appid', ep_request('appid'));
+
+		if (!$whm) {
+			$str .= '500\'/>';
+			exit($str);
+		}
+
 		$result = $whm->call($whmcall, 10);
 
 		if (!$result) {
@@ -253,7 +285,7 @@ class WebappControl extends Control
 
 		$str .= '\' ';
 
-		if ($result->getCode() == 201) {
+		if ($result && $result->getCode() == 201) {
 			$str .= ' total=\'' . $result->get('total');
 			$str .= '\' finished=\'' . $result->get('finished');
 			$str .= '\'';

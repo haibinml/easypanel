@@ -50,6 +50,7 @@ function php_get_version()
 {
 	$extdir = $GLOBALS['safe_dir'] . '../ext/';
 	$opdir = opendir($extdir);
+	$versions = array();
 
 	if (!$opdir) {
 		return false;
@@ -90,8 +91,9 @@ function php_destroy($params)
 function php_link($params)
 {
 	$versions = php_get_version();
+	$str = '';
 
-	if (1 < count($versions)) {
+	if (is_array($versions) && 1 < count($versions)) {
 		$vhostinfo = apicall('vhostinfo', 'get2', array(getRole('vhost'), 'moduleversion', 101));
 		$value = $vhostinfo['value'];
 		$str = '<form action=\'?c=index&a=module&op=php_version\' method=\'POST\'>切换php版本:<select name=v>';
@@ -127,7 +129,7 @@ function php_call($params)
 		if(empty($v))return false;
 		$vhost = getRole('vhost');
 		$ver = php_get_version();
-		if(!array_key_exists($v, $ver)) return;
+		if(!is_array($ver) || !array_key_exists($v, $ver)) return;
 
 		if (!is_win()) {
 			@unlink('/vhs/kangle/phpini/php-'.$vhost.'.ini');
@@ -158,9 +160,13 @@ function php_get_cli_version()
 
 function php_set_cli_version($version)
 {
-	if(empty($version)){
+	$version = ep_str($version);
+	if($version === ''){
 		shell_exec('rm -f /usr/bin/php');
 	}else{
+		if (!preg_match('/^php[0-9]+$/', $version)) {
+			return false;
+		}
 		shell_exec('ln -sf /vhs/kangle/ext/'.$version.'/bin/php /usr/bin/php');
 	}
 }

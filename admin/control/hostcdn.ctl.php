@@ -72,7 +72,7 @@ class HostcdnControl extends control
 		$tables = $access->listTable();
 		$table_finded = false;
 
-		foreach ($tables as $table) {
+		foreach (ep_iter($tables) as $table) {
 			if ($table == CDN_TABLE) {
 				$table_finded = true;
 				break;

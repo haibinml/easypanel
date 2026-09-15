@@ -55,8 +55,8 @@ class SecurityControl extends Control
 
 	public function ssl()
 	{
-		$crt = $_REQUEST['crt'];
-		$key = $_REQUEST['key'];
+		$crt = ep_str(isset($_REQUEST['crt']) ? $_REQUEST['crt'] : '');
+		$key = ep_str(isset($_REQUEST['key']) ? $_REQUEST['key'] : '');
 
 		if(empty($crt) || empty($key)){
 			exit("<script language='javascript'>alert('SSL证书不能为空');history.go(-1);</script>");
@@ -64,7 +64,7 @@ class SecurityControl extends Control
 
 		$check = $this->check_cert($crt, $key);
 		if($check !== true){
-			exit("<script language='javascript'>alert('{$check}');history.go(-1);</script>");
+			exit("<script language='javascript'>alert('".ep_js_str($check)."');history.go(-1);</script>");
 		}
 
 		$crtfile = $GLOBALS['safe_dir'] . 'server.crt';

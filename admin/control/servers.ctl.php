@@ -34,9 +34,9 @@ class ServersControl extends Control
 		$this->assign('server', $_REQUEST['server']);
 		$this->assign('domain', $_REQUEST['domain']);
 		$views = daocall('views', 'viewsList', array());
-		$slaves = daocall('slaves', 'slavesGet', array(
+		$slaves = ep_iter(daocall('slaves', 'slavesGet', array(
 	array('server' => $_REQUEST['server'])
-	));
+	)));
 		$nodes = array('localhost');
 
 		foreach ($slaves as $slave) {
@@ -53,7 +53,7 @@ class ServersControl extends Control
 	public function getServers()
 	{
 		$servers = daocall('servers', 'serverGet', array());
-		$count = count($servers);
+		$count = is_array($servers) ? count($servers) : 0;
 		$info['count'] = $count;
 		$info['servers'] = $servers;
 		$info = json_encode($info);
@@ -96,6 +96,9 @@ class ServersControl extends Control
 		$count = 0;
 		$list = daocall('servers', 'serverPageList', array($page, $page_count, &$count));
 		$slaves = daocall('slaves', 'slavesGet', array());
+
+		$list = ep_iter($list);
+		$slaves = ep_iter($slaves);
 
 		if (0 < count($slaves)) {
 			foreach ($list as &$li) {

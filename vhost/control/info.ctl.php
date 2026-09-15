@@ -4,7 +4,7 @@ class InfoControl extends Control
 {
 	public function showErrorPage()
 	{
-		$list = daocall('vhostinfo', 'getInfo', array(getRole('vhost'), 1));
+		$list = ep_iter(daocall('vhostinfo', 'getInfo', array(getRole('vhost'), 1)));
 		$sum = count($list);
 		$this->_tpl->assign('sum', $sum);
 		$this->_tpl->assign('list', $list);

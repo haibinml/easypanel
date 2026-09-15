@@ -23,10 +23,10 @@ class DAO
 
 		$count_sql = 'SELECT COUNT(*) AS count FROM ' . $this->_TABLE . $where;
 		$ret = $this->executex($count_sql, 'row');
-		$count = $ret['count'];
+		$count = (is_array($ret) && isset($ret['count'])) ? $ret['count'] : 0;
 		$sql = 'SELECT ' . ($fields ? $this->queryFields($fields) : $this->AllQueryFields()) . ' FROM ' . $this->_TABLE . $where;
 
-		if ($order_field) {
+		if ($order_field && isset($this->MAP_ARR[$order_field])) {
 			$sql .= ' ORDER BY `' . $this->MAP_ARR[$order_field] . '`';
 
 			if ($desc) {
@@ -43,7 +43,7 @@ class DAO
 		global $default_db;
 		global $dbs;
 
-		if ($dbs[$this->_DBFILE] == null) {
+		if (empty($dbs[$this->_DBFILE])) {
 			$dsn = 'sqlite:' . $GLOBALS['safe_dir'] . $this->_DBFILE . '.db';
 			$dbs[$this->_DBFILE] = db_connect($dsn);
 		}
@@ -85,7 +85,7 @@ class DAO
 	 * @param String sql		sql语句
 	 * @param String type		执行类型。row:单条查询；rows:多条查询；result:执行动作
 	 */
-	protected function execute($host = 'vip', $dbname = 'kpanel', $sql, $type = 'result')
+	protected function execute($host = 'vip', $dbname = 'kpanel', $sql = '', $type = 'result')
 	{
 		$row = db_query($this->connect(), $sql, $type);
 		return $row;
@@ -135,8 +135,8 @@ class DAO
 			$sql .= ' WHERE ' . $where;
 		}
 
-		if ($order) {
-			$sql .= ' ORDER BY ' . $order;
+		if ($order && isset($this->MAP_ARR[$order])) {
+			$sql .= ' ORDER BY `' . $this->MAP_ARR[$order] . '`';
 		}
 
 		return $this->executex($sql, $type);
@@ -198,12 +198,16 @@ class DAO
 	{
 		$fields_str = '';
 
+		if (!is_array($arr)) {
+			return false;
+		}
+
 		foreach ($arr as $field => $value) {
 			if (!array_key_exists($field, $this->MAP_ARR)) {
 				continue;
 			}
 
-			if ($this->MAP_TYPE != null && $this->MAP_TYPE[$field] & FIELD_TYPE_AUTO) {
+			if ($this->MAP_TYPE != null && isset($this->MAP_TYPE[$field]) && ($this->MAP_TYPE[$field] & FIELD_TYPE_AUTO)) {
 				continue;
 			}
 
@@ -228,12 +232,16 @@ class DAO
 		$fields = '';
 		$values = '';
 
+		if (!is_array($arr)) {
+			return false;
+		}
+
 		foreach ($arr as $key => $value) {
 			if (!array_key_exists($key, $this->MAP_ARR)) {
 				continue;
 			}
 
-			if ($this->MAP_TYPE != null && $this->MAP_TYPE[$key] & FIELD_TYPE_AUTO) {
+			if ($this->MAP_TYPE != null && isset($this->MAP_TYPE[$key]) && ($this->MAP_TYPE[$key] & FIELD_TYPE_AUTO)) {
 				continue;
 			}
 
@@ -264,12 +272,16 @@ class DAO
 		$fields = '';
 		$values = '';
 
+		if (!is_array($arr)) {
+			return false;
+		}
+
 		foreach ($arr as $key => $value) {
 			if (!array_key_exists($key, $this->MAP_ARR)) {
 				continue;
 			}
 
-			if ($this->MAP_TYPE != null && $this->MAP_TYPE[$key] & FIELD_TYPE_AUTO) {
+			if ($this->MAP_TYPE != null && isset($this->MAP_TYPE[$key]) && ($this->MAP_TYPE[$key] & FIELD_TYPE_AUTO)) {
 				continue;
 			}
 
@@ -305,6 +317,10 @@ class DAO
 	{
 		$fieldstr = '';
 
+		if (!is_array($this->MAP_ARR)) {
+			return $fieldstr;
+		}
+
 		foreach ($this->MAP_ARR as $field) {
 			if ($fieldstr != '') {
 				$fieldstr .= ',';
@@ -319,6 +335,10 @@ class DAO
 	protected function queryFields(&$fields)
 	{
 		$fieldstr = '';
+
+		if (!is_array($fields)) {
+			return $fieldstr;
+		}
 
 		foreach ($fields as $field) {
 			if ($fieldstr != '') {
@@ -372,7 +392,11 @@ class DAO
 
 	protected function daddslashes($string)
 	{
-		return str_replace('\'', '\'\'', $string);
+		if (is_array($string) || is_object($string)) {
+			return '';
+		}
+
+		return str_replace('\'', '\'\'', ep_str($string));
 	}
 
 	protected function getFieldValue2($name, $value)
@@ -382,7 +406,7 @@ class DAO
 
 	protected function getFieldValue($name, $value)
 	{
-		if ($this->MAP_TYPE == null) {
+		if ($this->MAP_TYPE == null || !isset($this->MAP_TYPE[$name])) {
 			return '\'' . $this->daddslashes($value) . '\'';
 		}
 
@@ -390,7 +414,7 @@ class DAO
 		case FIELD_TYPE_INT:
 			return intval($value);
 		case FIELD_TYPE_MD5:
-			return '\'' . md5($value) . '\'';
+			return '\'' . md5(ep_str($value)) . '\'';
 		case FIELD_TYPE_DATETIME:
 			return $value;
 		}
@@ -400,11 +424,11 @@ class DAO
 
 	protected function now()
 	{
-		if (defined(DAO_MYSQL_DRIVER)) {
+		if (defined('DAO_MYSQL_DRIVER')) {
 			return 'NOW()';
 		}
 
-		if (defined(DAO_SQLITE_DRIVER)) {
+		if (defined('DAO_SQLITE_DRIVER')) {
 			return 'datetime(\'now\')';
 		}
 

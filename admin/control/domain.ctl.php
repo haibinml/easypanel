@@ -23,7 +23,8 @@ class DomainControl extends Control
 			exit('不能打开文件' . SYS_ROOT . '/configs/reserv_domain.cfg.php');
 		}
 
-		apicall('utils', 'writeDomainConfig', array($fp, array_unique($GLOBALS['reserv_domain'])));
+		$reserv = (isset($GLOBALS['reserv_domain']) && is_array($GLOBALS['reserv_domain'])) ? $GLOBALS['reserv_domain'] : array();
+		apicall('utils', 'writeDomainConfig', array($fp, array_unique($reserv)));
 		header('Location: ?c=domain&a=domainFrom');
 		exit();
 	}
@@ -37,7 +38,8 @@ class DomainControl extends Control
 			exit('不能打开文件' . SYS_ROOT . '/configs/reserv_domain.cfg.php');
 		}
 
-		apicall('utils', 'writeDomainConfig', array($fp, array_unique($GLOBALS['reserv_domain']), $del_domain_name));
+		$reserv = (isset($GLOBALS['reserv_domain']) && is_array($GLOBALS['reserv_domain'])) ? $GLOBALS['reserv_domain'] : array();
+		apicall('utils', 'writeDomainConfig', array($fp, array_unique($reserv), $del_domain_name));
 		header('Location: ?c=domain&a=domainFrom');
 		exit();
 	}

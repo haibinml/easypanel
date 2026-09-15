@@ -3,6 +3,10 @@ class VhostproductAPI extends API
 {
 	public function add($arr, $migrate = null)
 	{
+		if (!is_array($arr)) {
+			return false;
+		}
+
 		$name = $arr['product_name'];
 
 		if ($arr['cdn'] == '1') {

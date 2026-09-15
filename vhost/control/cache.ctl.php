@@ -18,13 +18,31 @@ class CacheControl extends Control
 	{
 		$this->cacheAddTable();
 		$result = $this->access->listChain(CACHE_TABLE, 1);
+		if (!$result) {
+			return;
+		}
 		$id = 0;
 
 		foreach ($result->children() as $k => $chain) {
 			foreach ($chain->children() as $key => $ch) {
 				if (strstr($key, 'acl_')) {
-					$header[$id]['name'] = substr($key, 4);
-					$header[$id]['val'] = (string) $ch;
+					$name = substr($key, 4);
+					$value = (string) $ch;
+					// Current kangle WHM serializes ACL parameters as XML
+					// attributes. Older releases returned the value as element text.
+					// Accept both forms so existing and newly-created rules display.
+					if ($value === '') {
+						$value_attributes = array(
+							'file_ext' => 'v',
+							'url' => 'url',
+							'header' => 'val',
+						);
+						if (isset($value_attributes[$name])) {
+							$value = (string) $ch[$value_attributes[$name]];
+						}
+					}
+					$header[$id]['name'] = $name;
+					$header[$id]['val'] = $value;
 					$header[$id]['id'] = $id;
 				}
 
@@ -155,7 +173,7 @@ class CacheControl extends Control
 		$tables = $this->access->listTable();
 		$table_finded = false;
 
-		foreach ($tables as $table) {
+		foreach (ep_iter($tables) as $table) {
 			if ($table == CACHE_TABLE) {
 				$table_finded = true;
 				break;

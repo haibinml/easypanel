@@ -29,11 +29,7 @@ class ServersDAO extends DAO
 	public function serverPageList($page, $page_count, &$count)
 	{
 		$fields = array('server', 'ns');
-
-		if (!$order_field) {
-			$order_field = 'server';
-		}
-
+		$order_field = 'server';
 		$where = '';
 		return $this->selectPage($fields, $where, $order_field, true, $page, $page_count, $count);
 	}
@@ -43,7 +39,7 @@ class ServersDAO extends DAO
 		$where = null;
 		$type = 'rows';
 
-		if ($where_arr['server']) {
+		if (is_array($where_arr) && !empty($where_arr['server'])) {
 			$where = $this->getFieldValue2('server', $where_arr['server']);
 			$type = 'row';
 		}

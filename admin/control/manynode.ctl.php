@@ -21,7 +21,7 @@ class ManynodeControl extends control
 			$this->_tpl->assign('edit', 1);
 			$this->_tpl->assign('node', $node);
 		}else{
-			$this->_tpl->assign('node', ['port'=>3312]);
+			$this->_tpl->assign('node', array('port'=>3312));
 		}
 
 		return $this->_tpl->display('manynode/addfrom.html');
@@ -30,7 +30,7 @@ class ManynodeControl extends control
 	public function getNode()
 	{
 		$nodes = daocall('manynode', 'get', array());
-		$count = count($nodes);
+		$count = is_array($nodes) ? count($nodes) : 0;
 		$status = '200';
 
 		if ($count <= 0) {
@@ -158,7 +158,10 @@ class ManynodeControl extends control
 			return $this->_tpl->fetch('msg.html');
 		}
 
-		echo '<script language=\'javascript\' src=\'?c=manynode&a=syncDelNodeCdn&name=' . $node['name'] . '&skey=' . $node['skey'] . '&host=' . $node['host'] . '&port=' . $node['port'] . '\'></script>';
+		if ($return && is_array($node)) {
+			echo '<script language=\'javascript\' src=\'?c=manynode&a=syncDelNodeCdn&name=' . rawurlencode($node['name']) . '&skey=' . rawurlencode($node['skey']) . '&host=' . rawurlencode($node['host']) . '&port=' . rawurlencode($node['port']) . '\'></script>';
+		}
+
 		return $this->pageList();
 	}
 

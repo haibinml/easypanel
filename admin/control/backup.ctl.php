@@ -203,7 +203,7 @@ class BackupControl extends control
 		}
 
 		$dsn = 'mysql:host=localhost;port=' . $port;
-		$pdo = new PDO($dsn, $user, $passwd);
+		$pdo = ep_new_pdo($dsn, $user, $passwd);
 
 		if (!$pdo) {
 			return false;
@@ -211,10 +211,12 @@ class BackupControl extends control
 
 		$result = $pdo->query('SHOW VARIABLES');
 
-		foreach ($result as $ret) {
-			if ($ret['Variable_name'] == 'log_bin') {
-				if ($ret['Value'] == 'ON') {
-					exit('success');
+		if ($result) {
+			foreach ($result as $ret) {
+				if ($ret['Variable_name'] == 'log_bin') {
+					if ($ret['Value'] == 'ON') {
+						exit('success');
+					}
 				}
 			}
 		}

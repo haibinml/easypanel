@@ -25,8 +25,12 @@ class SessionControl extends Control
 		$name = getRole('vhost');
 
 		if ($name) {
-			$sign = md5($name . $_REQUEST['r'] . $GLOBALS['skey']);
-			$url = $_REQUEST['url'];
+			$sign = md5($name . ep_request('r') . $GLOBALS['skey']);
+			$url = ep_safe_header_url(isset($_REQUEST['url']) ? $_REQUEST['url'] : '');
+
+			if ($url === '') {
+				exit('invalid url');
+			}
 
 			if (strchr($url, '?')) {
 				$url .= '&';
@@ -35,7 +39,7 @@ class SessionControl extends Control
 				$url .= '?';
 			}
 
-			$url .= 'action=login&name=' . $name . '&s=' . $sign;
+			$url .= 'action=login&name=' . rawurlencode($name) . '&s=' . $sign;
 			header('Location: ' . $url);
 			exit();
 		}
@@ -88,16 +92,18 @@ class SessionControl extends Control
 
 	public function login()
 	{
-		session_start();
+		ep_session_start();
 		$setting = daocall('setting', 'getAll', array());
 
 		if ($setting['vhost_login_img']) {
-			if (empty($_SESSION['vhost_img_number']) || $_REQUEST['imgnumber'] != $_SESSION['vhost_img_number']) {
+			if (empty($_SESSION['vhost_img_number']) || !ep_hash_equals($_SESSION['vhost_img_number'], ep_request('imgnumber'))) {
 				$tpl = tpl::singleton();
 				$tpl->assign('errormsg', '验证码错误');
 				$html = $tpl->fetch('loginerror.html');
 				exit($html);
 			}
+
+			unset($_SESSION['vhost_img_number']);
 		}
 
 		$user = apicall('vhost', 'checkPassword', array(filterParam($_REQUEST['username']), filterParam($_REQUEST['passwd'])));
@@ -111,6 +117,7 @@ class SessionControl extends Control
 
 		registerRole('vhost', $user['name']);
 		$_SESSION['login_from'] = 'vhost';
+		session_regenerate_id(true);
 		header('Location: index.php');
 	}
 

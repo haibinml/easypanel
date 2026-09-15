@@ -153,14 +153,16 @@ class SessionControl extends Control
 		$setting = daocall('setting', 'getAll', array());
 
 		if ($setting['admin_login_img']) {
-			if (empty($_SESSION['admin_img_number']) || $_REQUEST['imgnumber'] != $_SESSION['admin_img_number']) {
+			if (empty($_SESSION['admin_img_number']) || !ep_hash_equals($_SESSION['admin_img_number'], ep_request('imgnumber'))) {
 				$this->_tpl->assign('msg', '验证码错误');
 				return $this->_tpl->display('login_error.html');
 			}
+
+			unset($_SESSION['admin_img_number']);
 		}
 
 		load_lib('pub:db');
-		$info = apicall('nodes', 'getWhmInfo', array($_REQUEST['username'], $_REQUEST['passwd']));
+		$info = apicall('nodes', 'getWhmInfo', array(ep_request('username'), ep_request('passwd')));
 
 		if (!$info) {
 			$this->_tpl->assign('msg', 'kangle 通信失败');
@@ -176,7 +178,7 @@ class SessionControl extends Control
 			$str .= '$GLOBALS[\'safe_dir\'] = ';
 
 			if ($kangle_home) {
-				$str .= '\'' . $kangle_home . 'etc/\'';
+				$str .= '\'' . str_replace(array('\\', '\''), array('\\\\', '\\\''), ep_str($kangle_home)) . 'etc/\'';
 			}
 			else {
 				$str .= 'dirname(__FILE__).\'/../../etc/\'';
@@ -185,7 +187,7 @@ class SessionControl extends Control
 			$str .= ";\r\n";
 			$str .= "\$GLOBALS['db_cfg']['default']=array('dsn'=>'sqlite:'.\$GLOBALS['safe_dir'].'vhs.db');\r\n";
 			$str .= "\$GLOBALS['node_db']='sqlite';\r\n";
-			$str .= "define(DAO_SQLITE_DRIVER,1);\r\n";
+			$str .= "define('DAO_SQLITE_DRIVER',1);\r\n";
 			$str .= "@include_once \$GLOBALS['safe_dir'].'node.cfg.php';\r\n";
 			$fp = fopen($config_file, 'w');
 
@@ -207,9 +209,9 @@ class SessionControl extends Control
 			$_SESSION['setup_wizard'] = 1;
 		}
 
-		if ($_REQUEST['username'] != $GLOBALS['node_cfg']['localhost']['user'] || $_REQUEST['passwd'] != $GLOBALS['node_cfg']['localhost']['passwd']) {
+		if (ep_request('username') != $GLOBALS['node_cfg']['localhost']['user'] || ep_request('passwd') != $GLOBALS['node_cfg']['localhost']['passwd']) {
 			$GLOBALS['node_cfg']['localhost']['win'] = strcasecmp($info->get('os'), 'windows') == 0 ? 1 : 0;
-			$this->resetAdminInfo($_REQUEST['username'], $_REQUEST['passwd']);
+			$this->resetAdminInfo(ep_request('username'), ep_request('passwd'));
 		}
 
 		$default_db = db_connect();
@@ -242,13 +244,13 @@ class SessionControl extends Control
 			daocall('setting', 'add', array('EASYPANEL_VERSION', EASYPANEL_VERSION));
 		}
 
-		registerRole('admin', $_REQUEST['username']);
+		registerRole('admin', ep_request('username'));
+		session_regenerate_id(true);
 		header('Location: index.php');
 	}
 
 	public function logout()
 	{
-		session_start();
 		session_unset();
 		session_destroy();
 		return $this->loginForm();

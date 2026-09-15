@@ -6,7 +6,7 @@ class DnsControl extends Control
 	{
 		$records = daocall('records', 'recordList', array());
 
-		foreach ($records as $re) {
+		foreach (ep_iter($records) as $re) {
 			apicall('bind', 'domainAdd', array($re));
 		}
 	}

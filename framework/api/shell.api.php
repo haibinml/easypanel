@@ -71,6 +71,11 @@ class ShellAPI extends API
 		if(!$dbobj) return false;
 		$uses = $dbobj->getAllUsed();
 		$dbs = daocall('vhost', 'getListvhost', array('db_use'));
+
+		if (!is_array($dbs) || !is_array($uses)) {
+			return false;
+		}
+
 		$count = count($dbs);
 
 		if ($count < 0) {
@@ -132,7 +137,7 @@ class ShellAPI extends API
 		$vhs = daocall('vhost', 'listVhost', array(null));
 		$str = "<vhs>\n";
 
-		foreach ($vhs as $vh) {
+		foreach (ep_iter($vhs) as $vh) {
 			$result_str = $this->build_vh($vh);
 			$str .= $result_str;
 		}
@@ -181,14 +186,14 @@ class ShellAPI extends API
 
 		$list_vhosts = daocall('vhost', 'getListvhost', array('flow_limit'));
 
-		if (count($list_vhosts) < 0) {
+		if (!is_array($list_vhosts) || count($list_vhosts) <= 0) {
 			return true;
 		}
 
 		$t = date('Ym');
 		$list_flows = apicall('flow', 'getListflow', array('flow_month', $t));
 
-		if (count($list_flows) < 0) {
+		if (!is_array($list_flows) || count($list_flows) <= 0) {
 			return true;
 		}
 
@@ -196,7 +201,7 @@ class ShellAPI extends API
 
 		foreach ($list_vhosts as $list_vhost) {
 			$result = apicall('flow', 'getMonthFlow', array($list_vhost['name'], $t));
-			$month_flow = $result['flow'] / 1024;
+			$month_flow = (is_array($result) && isset($result['flow']) ? $result['flow'] : 0) / 1024;
 			if (0 < $list_vhost['flow_limit'] && $list_vhost['flow_limit'] * 1024 <= $month_flow) {
 				if ($list_vhost['status'] == 0) {
 					apicall('vhost', 'changeStatus', array('localhost', $list_vhost['name'], $flow_stop_status));
@@ -302,7 +307,7 @@ class ShellAPI extends API
 	 * 如果是作主节点，主节点的虚拟主机名字没有@打头，则为空，如果是辅节点，则要传入@
 	 * @param $revers 0翻转prefix,1为翻转不是prefix,1为取本机时使用
 	 */
-	public function sync_localhost_flow($db_name, $db_name2 = null, $prefix, $revers = 0)
+	public function sync_localhost_flow($db_name, $db_name2 = null, $prefix = '', $revers = 0)
 	{
 		$t = date('YmdH', time());
 		$month = substr($t, 0, 6);
@@ -340,7 +345,7 @@ class ShellAPI extends API
 	 * @param $prefix @ || ""
 	 * @param $prfix_len int || 0
 	 */
-	private function insert_flow($lines = array(), $hour, $day, $month, $db_name)
+	private function insert_flow($lines = array(), $hour = '', $day = '', $month = '', $db_name = '')
 	{
 		load_lib('pub:flow');
 		$flowobj = new flow($db_name);

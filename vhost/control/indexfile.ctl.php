@@ -55,6 +55,10 @@ class IndexfileControl extends Control
 
 	private function indexfileList()
 	{
+		if (!$this->whm) {
+			return false;
+		}
+
 		$whmCall = new WhmCall('core.whm', 'list_index');
 		$whmCall->addParam('vh', getRole('vhost'));
 		return $this->whm->call($whmCall);

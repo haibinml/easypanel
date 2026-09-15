@@ -7,7 +7,7 @@ class WebftpControl extends Control
 
 	public function __construct()
 	{
-		if ($_SESSION['webftp_user'] == '') {
+		if (empty($_SESSION['webftp_user'])) {
 			exit('please login webftp first');
 		}
 
@@ -179,8 +179,8 @@ class WebftpControl extends Control
 	{
 		$dir = @unescape($dir);
 
-		if ($dir[0] != '/') {
-			$dir = $_SESSION['webftp_cwd'] . '/' . $dir;
+		if ($dir === '' || (isset($dir[0]) && $dir[0] != '/')) {
+			$dir = (isset($_SESSION['webftp_cwd']) ? $_SESSION['webftp_cwd'] : '') . '/' . $dir;
 		}
 
 		$_SESSION['webftp_cwd'] = trimdir($dir);
@@ -192,17 +192,17 @@ class WebftpControl extends Control
 		$dir = unescape($dir);
 
 		if ($curdir == null) {
-			$curdir = $_SESSION['webftp_cwd'];
+			$curdir = isset($_SESSION['webftp_cwd']) ? $_SESSION['webftp_cwd'] : '';
 		}
 
-		if ($dir[0] != '/') {
+		if ($dir === '' || (isset($dir[0]) && $dir[0] != '/')) {
 			$dir = $curdir . '/' . $dir;
 		}
 
 		$dir = tolocal(trimdir($dir), $this->file_encoding);
 
-		if ($dir[0] == '/') {
-			return $dir;
+		if ($dir === '' || (isset($dir[0]) && $dir[0] == '/')) {
+			return $dir === '' ? '/' : $dir;
 		}
 
 		return '/' . $dir;
@@ -244,7 +244,7 @@ class WebftpControl extends Control
 		while (true) {
 			$str = fread($file, 8192);
 
-			if ($str == FALSE) {
+			if ($str === false || $str === '') {
 				break;
 			}
 

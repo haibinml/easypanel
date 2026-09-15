@@ -101,6 +101,7 @@ class WebappAPI extends API
 			}
 
 			if ($node->nodeType != 1) {
+				++$i;
 				continue;
 			}
 

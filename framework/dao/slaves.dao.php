@@ -31,15 +31,13 @@ class SlavesDAO extends DAO
 		return $this->update($arr, $this->getFieldValue2('server', $server) . ' and ' . $this->getFieldValue2('slave', $slave));
 	}
 
-	public function slavePageList($page, $page_count, $count, $where_arr = null)
+	public function slavePageList($page, $page_count, &$count, $where_arr = null)
 	{
 		$fields = array('server', 'slave', 'skey', 'ns');
+		$order_field = 'slave';
+		$where = '';
 
-		if (!$order_field) {
-			$order_field = 'slave';
-		}
-
-		if ($where_arr['server']) {
+		if (is_array($where_arr) && !empty($where_arr['server'])) {
 			$where = $this->getFieldValue2('server', $where_arr['server']);
 		}
 
@@ -52,11 +50,11 @@ class SlavesDAO extends DAO
 		$type = 'rows';
 		$fields = array('server', 'slave', 'ns', 'skey');
 
-		if ($where_arr['server']) {
+		if (is_array($where_arr) && !empty($where_arr['server'])) {
 			$where = $this->getFieldValue2('server', $where_arr['server']);
 			$type = 'rows';
 
-			if ($where_arr['slave']) {
+			if (!empty($where_arr['slave'])) {
 				$where .= ' and ' . $this->getFieldValue2('slave', $where_arr['slave']);
 				$type = 'row';
 			}

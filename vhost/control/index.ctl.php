@@ -59,8 +59,11 @@ class IndexControl extends Control
 	{
 		$vhost = getRole('vhost');
 		$versions = modcall('php', 'php_get_version');
-		if ($_REQUEST['op'] == 'change') {
-			$v = trim($_REQUEST['v']);
+		if (!is_array($versions)) {
+			$versions = array();
+		}
+		if (ep_request('op') == 'change') {
+			$v = trim(ep_request('v'));
 			if(empty($v) || !array_key_exists($v, $versions))exit('参数错误');
 
 			$arr['value'] = '1,cmd:' . $v . ',*';

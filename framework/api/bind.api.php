@@ -29,7 +29,7 @@ class BindAPI extends API
 			return false;
 		}
 		$key = $view . "_key:" . $v["key"];
-		$cmd = $this->bind_dir . "bin/dig @" . $host . " -y " . $key . " " . $domain;
+		$cmd = $this->bind_dir . "bin/dig @" . escapeshellarg($host) . " -y " . escapeshellarg($key) . " " . escapeshellarg($domain);
 		exec($cmd, $out, $status);
 		if ($status != 0 && $status != 0 - 1) {
 			$this->setErrorMsg("dig cmd run error");
@@ -46,7 +46,7 @@ class BindAPI extends API
 				$this->setErrorMsg("rndc status cmd run failed status:" . $status);
 				return false;
 			}
-			if (count($out) < 0) {
+			if (count($out) <= 0) {
 				$this->setErrorMsg("rndc status return empty ");
 				return false;
 			}
@@ -69,7 +69,7 @@ class BindAPI extends API
 	}
 	public function checkZone($domain, $filename)
 	{
-		$cmd = $this->bind_dir . "sbin/named-checkzone " . $domain . " " . $filename;
+		$cmd = $this->bind_dir . "sbin/named-checkzone " . escapeshellarg($domain) . " " . escapeshellarg($filename);
 		exec($cmd, $out, $status);
 		if ($status != 0 && $status != 0 - 1) {
 			$this->setErrorMsg("checkzone cmd result status=" . $status);
@@ -134,7 +134,7 @@ class BindAPI extends API
 	public function bindInit($sync = true, $master = true)
 	{
 		$views = daocall("views", "viewsList", array());
-		if (count($views) <= 0) {
+		if (!is_array($views) || count($views) <= 0) {
 			$this->setErrorMsg("DNS线路不能为空，请先同步DNS线路 line " . 166);
 			return false;
 		}
@@ -172,7 +172,7 @@ class BindAPI extends API
 	public function writeAllDomainConf()
 	{
 		$domains = daocall("domains", "domainList", array());
-		if (count($domains) <= 0) {
+		if (!is_array($domains) || count($domains) <= 0) {
 			return true;
 		}
 		foreach ($domains as $domain) {
@@ -191,7 +191,7 @@ class BindAPI extends API
 	{
 		$views = daocall("views", "viewsList", array());
 		$this->views = $views;
-		if (count($views) <= 0) {
+		if (!is_array($views) || count($views) <= 0) {
 			$this->setErrorMsg("views is empty line " . 227);
 			return false;
 		}
@@ -243,7 +243,7 @@ class BindAPI extends API
 				$str .= "\t\tNS\t\t" . $server["ns"] . "\n";
 			}
 			$slaves = daocall("slaves", "slavesGet", array($info));
-			if (0 < count($slaves)) {
+			if (is_array($slaves) && 0 < count($slaves)) {
 				foreach ($slaves as $slave) {
 					$str .= "\t\tNS\t\t" . $slave["ns"] . "\n";
 				}
@@ -306,11 +306,11 @@ class BindAPI extends API
 	{
 		if ($domains == null) {
 			$domains = daocall("domains", "domainList", array());
-			if (count($domains) <= 0) {
+			if (!is_array($domains) || count($domains) <= 0) {
 				return true;
 			}
 		}
-		$views = daocall("views", "viewsList", array());
+		$views = ep_iter(daocall("views", "viewsList", array()));
 		if ($master == null) {
 			$slaves = daocall("slaves", "slavesGet", array());
 		}
@@ -336,7 +336,7 @@ class BindAPI extends API
 				$string .= "\tserver 127.0.0.1 {\n";
 				$string .= "\t\tkeys { " . $view["name"] . "_key; };\n";
 				$string .= "\t};\n";
-				if (0 < count($slaves)) {
+				if (is_array($slaves) && 0 < count($slaves)) {
 					foreach ($slaves as $slave) {
 						$string .= "\tserver " . $slave["slave"] . " {\n";
 						$string .= "\t\tkeys { " . $view["name"] . "_key; };\n";
@@ -393,7 +393,7 @@ class BindAPI extends API
 	public function rundViewKey()
 	{
 		$views = daocall("views", "viewsList", array());
-		if (count($views) <= 0) {
+		if (!is_array($views) || count($views) <= 0) {
 			return false;
 		}
 		foreach ($views as $view) {
@@ -414,10 +414,9 @@ class BindAPI extends API
 		$i = 0;
 		while ($i <= 255) {
 			$str = sprintf("%02x", $i);
-			if (file_exists($this->zonedir . $str)) {
-				continue;
+			if (!file_exists($this->zonedir . $str)) {
+				@mkdir($this->zonedir . $str, 448);
 			}
-			@mkdir($this->zonedir . $str, 448);
 			++$i;
 		}
 	}
@@ -425,13 +424,13 @@ class BindAPI extends API
 	{
 		$zones = array("any" => array());
 		$records = daocall("records", "recordListByDomain", array($domain, false));
-		foreach ($records as $re) {
+		foreach (ep_iter($records) as $re) {
 			$zones[$re["view"]][$re["name"]][] = $re;
 		}
 		$records = daocall("records", "recordListByDomain", array($domain, true));
-		foreach ($records as $re) {
+		foreach (ep_iter($records) as $re) {
 			foreach ($zones as $view => &$v) {
-				if ($view == "any" || !$v[$re["name"]]) {
+				if ($view == "any" || empty($v[$re["name"]])) {
 					$v[$re["name"]][] = $re;
 				}
 			}
@@ -501,7 +500,7 @@ class BindAPI extends API
 			$this->setErrorMsg("rndc-confgen cmd is exec failed line " . 562);
 			return false;
 		}
-		if (count($out) < 0) {
+		if (count($out) <= 0) {
 			$this->setErrorMsg("getBindSkey cmd out is empty line " . 566);
 			return false;
 		}
@@ -516,7 +515,7 @@ class BindAPI extends API
 	{
 		$cmd = "/vhs/bind/sbin/dnssec-keygen -r /dev/urandom -K /tmp -a hmac-md5 -b 256 -n HOST " . $this->key_host;
 		$out = $this->runCmd($cmd);
-		if ($out === false && count($out) < 0) {
+		if ($out === false) {
 			$this->setErrorMsg("rndc-confgen cmd is exec failed line " . 583);
 			return false;
 		}

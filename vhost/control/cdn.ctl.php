@@ -1,8 +1,8 @@
 <?php
 needRole('vhost');
-define(DENY_BANIP_TABLE, '!cdn');
-define(ACTION, 'table:!cdn');
-define(BEGIN, 'BEGIN');
+define('DENY_BANIP_TABLE', '!cdn');
+define('ACTION', 'table:!cdn');
+define('BEGIN', 'BEGIN');
 class CdnControl extends Control
 {
 	public function __construct()
@@ -41,7 +41,7 @@ class CdnControl extends Control
 		$tables = $access->listTable();
 		$table_finded = false;
 
-		foreach ($tables as $table) {
+		foreach (ep_iter($tables) as $table) {
 			if ($table == $tablename) {
 				$table_finded = true;
 				break;

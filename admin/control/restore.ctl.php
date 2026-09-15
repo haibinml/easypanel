@@ -7,6 +7,7 @@ class RestoreControl extends Control
 		if ($_REQUEST['dir']) {
 			$dir = $_REQUEST['dir'];
 			daocall('setting', 'add', array('backup_now_dir', $dir));
+			$str = '';
 			$this->_tpl->assign('cmd', $str);
 		}
 

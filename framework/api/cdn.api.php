@@ -17,6 +17,12 @@ class CdnAPI extends API
 	 */
 	public function delCdnAccessFile($vhostname)
 	{
+		$vhostname = ep_safe_name($vhostname);
+
+		if ($vhostname === '') {
+			return false;
+		}
+
 		$file = $GLOBALS['safe_dir'] . '../' . $this->cdndir . '/' . $vhostname . '.xml';
 		unlink($file);
 	}
@@ -28,7 +34,7 @@ class CdnAPI extends API
 	 */
 	public function sync_vhost_all($vhostname = null)
 	{
-		$nodes = daocall('manynode', 'get');
+		$nodes = ep_iter(daocall('manynode', 'get'));
 
 		if (count($nodes) <= 0) {
 			return false;
@@ -596,7 +602,7 @@ class CdnAPI extends API
 	 */
 	public function sync_vhost_domain($domain = array(), $mode)
 	{
-		$nodes = daocall('manynode', 'get');
+		$nodes = ep_iter(daocall('manynode', 'get'));
 
 		if (count($nodes) <= 0) {
 			return false;
@@ -631,7 +637,7 @@ class CdnAPI extends API
 	 */
 	public function sync_vhost_access()
 	{
-		$nodes = daocall('manynode', 'get');
+		$nodes = ep_iter(daocall('manynode', 'get'));
 
 		if (count($nodes) <= 0) {
 			return false;

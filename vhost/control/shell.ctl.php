@@ -83,7 +83,7 @@ class ShellControl extends Control
 		}
 
 		$attr['host'] = 'localhost';
-		if (substr($_REQUEST['file'], 0 - 3) == '.7z' || substr($_REQUEST['file'], 0 - 4) == '.zip') {
+		if (substr($attr['file'], 0 - 3) == '.7z' || substr($attr['file'], 0 - 4) == '.zip') {
 			return $this->whmshell('mysql_dump_in_compress', $attr);
 		}
 

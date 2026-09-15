@@ -45,6 +45,12 @@ class MigrateAPI extends API
 
 	public function migrateComplete($vh, $save_dir)
 	{
+		$vh = ep_safe_name($vh);
+
+		if ($vh === '') {
+			return false;
+		}
+
 		@unlink($save_dir . $vh . MYSQL_FILE_EXT);
 		@unlink($save_dir . $vh . WEB_FILE_EXT);
 		return true;
@@ -56,6 +62,12 @@ class MigrateAPI extends API
 
 	public function zipVhWeb($vh, $save_dir, $nolog = 1)
 	{
+		$vh = ep_safe_name($vh);
+
+		if ($vh === '') {
+			return false;
+		}
+
 		$attr['file'] = $save_dir . $vh . WEB_FILE_EXT;
 
 		if ($nolog == 1) {
@@ -68,6 +80,12 @@ class MigrateAPI extends API
 
 	public function zipVhSql($vh, $save_dir)
 	{
+		$vh = ep_safe_name($vh);
+
+		if ($vh === '') {
+			return false;
+		}
+
 		$G = $GLOBALS['node_cfg']['localhost'];
 		$attr['passwd'] = $G['db_passwd'];
 		$attr['dbname'] = $vh;

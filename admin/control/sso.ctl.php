@@ -15,7 +15,13 @@ class SsoControl extends Control
 			++$i;
 		}
 
-		$url = $_REQUEST['url'] . '&r=' . $sess_key;
+		$url = ep_safe_header_url(isset($_REQUEST['url']) ? $_REQUEST['url'] : '');
+
+		if ($url === '') {
+			exit('invalid url');
+		}
+
+		$url = $url . '&r=' . $sess_key;
 		$_SESSION['sess_key'] = $sess_key;
 		header('Location: ' . $url);
 		exit();
@@ -23,22 +29,23 @@ class SsoControl extends Control
 
 	public function login()
 	{
-		if ($_SESSION['sess_key'] == '') {
+		if (empty($_SESSION['sess_key'])) {
 			exit('error,sess_key is empty');
 		}
 
-		$name = $_REQUEST['name'];
+		$name = ep_request('name');
 		$skey = daocall('setting', 'get', array('skey'));
 
 		if (!$skey) {
 			exit('skey error');
 		}
 
-		$str = $_REQUEST['r'] . $name . $_SESSION['sess_key'] . $skey;
+		$str = ep_request('r') . $name . $_SESSION['sess_key'] . $skey;
 		$md5str = md5($str);
-		if (strtolower($md5str) === $_REQUEST['s'] && $_REQUEST['s'] != '') {
+		$sign = ep_request('s');
+		if (ep_hash_equals(strtolower($md5str), strtolower($sign)) && $sign != '') {
 			registerRole('admin', 'admin');
-			header('Location: ?c=vhost&a=showVhost&name=' . $name);
+			header('Location: ?c=vhost&a=showVhost&name=' . rawurlencode($name));
 			exit();
 			return NULL;
 		}

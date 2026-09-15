@@ -1,7 +1,11 @@
 <?php
 function verificationSkey()
 {
-	if ($_REQUEST['r'] == '' || $_REQUEST['a'] == '' || $_REQUEST['s'] == '') {
+	$r = ep_request('r');
+	$a = ep_request('a');
+	$s = ep_request('s');
+
+	if ($r == '' || $a == '' || $s == '') {
 		return false;
 	}
 
@@ -11,9 +15,9 @@ function verificationSkey()
 		return false;
 	}
 
-	$urls = $_REQUEST['a'] . $skey . $_REQUEST['r'];
+	$urls = $a . $skey . $r;
 
-	if (md5($urls) == $_REQUEST['s']) {
+	if (ep_hash_equals(md5($urls), $s)) {
 		return true;
 	}
 
@@ -30,7 +34,7 @@ class MigrateControl extends control
 	{
 		$vhs = daocall('vhost', 'listVhost', array());
 
-		if (count($vhs) < 0) {
+		if (!is_array($vhs) || count($vhs) <= 0) {
 			exit();
 		}
 

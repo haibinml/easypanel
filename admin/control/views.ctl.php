@@ -24,7 +24,7 @@ class ViewsControl extends Control
 
 		$server = daocall('servers', 'serverGet', array());
 
-		if (count($server) <= 0) {
+		if (!is_array($server) || count($server) <= 0) {
 			exit('未添加DNS服务器');
 		}
 

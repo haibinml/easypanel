@@ -5,8 +5,8 @@ define('APPLICATON_ROOT', dirname(__FILE__));
 define('SYS_ROOT', dirname(dirname(__FILE__)) . '/framework');
 define('VHOST_PATH', 1);
 include SYS_ROOT . '/runtime.php';
-$c = $_REQUEST['c'];
-$a = $_REQUEST['a'];
+$c = isset($_REQUEST['c']) ? $_REQUEST['c'] : '';
+$a = isset($_REQUEST['a']) ? $_REQUEST['a'] : '';
 
 if ($c == '') {
 	$_REQUEST['c'] = $c = 'index';

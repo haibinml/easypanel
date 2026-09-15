@@ -21,7 +21,11 @@ class ProductAPI extends API
 	 */
 	public function getDbName($array)
 	{
-		if ($array['db_name'] != '') {
+		if (!is_array($array)) {
+			$array = array();
+		}
+
+		if (isset($array['db_name']) && $array['db_name'] != '') {
 			return $array['db_name'];
 		}
 
@@ -35,7 +39,7 @@ class ProductAPI extends API
 	protected function getVhostProducts(&$products)
 	{
 		$products[] = array('name' => '--虚拟主机产品--', 'type' => '', 'id' => 0);
-		$data = daocall('vhostproduct', 'getSellProducts', null);
+		$data = ep_iter(daocall('vhostproduct', 'getSellProducts', null));
 		$i = 0;
 
 		while ($i < count($data)) {
@@ -84,7 +88,7 @@ class ProductAPI extends API
 		$className = $product_type . 'Product';
 		$lib = 'pub:' . $className;
 		load_lib($lib);
-		$className[0] = strtoupper($className[0]);
+		$className = strtoupper(substr($className, 0, 1)) . substr($className, 1);
 		return new $className();
 	}
 }

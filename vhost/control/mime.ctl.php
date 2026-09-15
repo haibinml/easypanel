@@ -6,7 +6,7 @@ class MimeControl extends Control
 	{
 		$mimes = daocall('vhostinfo', 'getInfo', array(getRole('vhost'), 5));
 
-		if (0 < count($mimes)) {
+		if (is_array($mimes) && 0 < count($mimes)) {
 			foreach ($mimes as $m) {
 				$exp = explode(',', $m['value']);
 				$mime[] = array('file_ext' => $m['name'], 'mime_type' => $exp[0], 'cache_time' => $exp[2], 'gzip' => $exp[1]);

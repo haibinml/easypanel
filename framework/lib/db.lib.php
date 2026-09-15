@@ -2,7 +2,7 @@
 function db_connectx($dsn)
 {
 	try {
-		return new PDO($dsn);
+		return ep_new_pdo($dsn);
 	}
 	catch (Exception $e) {
 		return false;
@@ -46,7 +46,8 @@ function db_query(PDO $db, $sql, $ret_type = 'result')
 		return false;
 	case 'rows':
 		if ($result) {
-			return $result->fetchAll(PDO::FETCH_ASSOC);
+			$rows = $result->fetchAll(PDO::FETCH_ASSOC);
+			return is_array($rows) ? $rows : array();
 		}
 
 		return false;

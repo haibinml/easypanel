@@ -17,8 +17,16 @@ class RecordAPI extends API
 	 */
 	public function recordDel($arr)
 	{
-		if (!$arr['domain'] && $arr['id']) {
+		if (!is_array($arr)) {
+			return false;
+		}
+
+		if (empty($arr['domain']) && !empty($arr['id'])) {
 			$arr = daocall('records', 'recordGet', array($arr));
+		}
+
+		if (!is_array($arr) || !isset($arr['domain'])) {
+			return false;
 		}
 
 		if (daocall('records', 'recordDel', array($arr))) {

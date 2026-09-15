@@ -11,8 +11,10 @@ class DnsControl extends Control
 
 	public function sync_record()
 	{
-		$info = (array) json_decode(base64_decode($_REQUEST['info']));
-		$domains = $info['domains'];
+		$raw = @base64_decode(ep_str(isset($_REQUEST['info']) ? $_REQUEST['info'] : ''));
+		$decoded = json_decode($raw);
+		$info = (is_object($decoded) || is_array($decoded)) ? (array) $decoded : array();
+		$domains = isset($info['domains']) ? $info['domains'] : null;
 
 		if (!apicall('bind', 'writeDomainConfig', array($_SERVER['REMOTE_ADDR'], $domains))) {
 			whm_return(500);
@@ -24,7 +26,7 @@ class DnsControl extends Control
 	public function test_dns()
 	{
 		$bind_dir = apicall('bind', 'getBindDir', array());
-		$t = $_REQUEST['t'];
+		$t = intval(ep_request('t'));
 		$lt = time();
 
 		if (300 < abs($t - $lt)) {
@@ -80,24 +82,28 @@ class DnsControl extends Control
 	public function domain_add()
 	{
 		$json['status'] = 400;
-		$arr['name'] = trim($_REQUEST['name']);
+		$arr['name'] = trim(ep_request('name'));
 
 		if (!$arr['name']) {
 			$json['msg'] = 'name 域名不能为空';
 			exit(json_encode($json));
 		}
 
-		$arr['passwd'] = $_REQUEST['passwd'] ? trim($_REQUEST['passwd']) : $this->get_salt(6);
-		$arr['max_record'] = $_REQUEST['max_record'] ? intval($_REQUEST['max_record']) : 10;
-		$arr['status'] = $_REQUEST['status'] ? intval($_REQUEST['status']) : '0';
-		$arr['server'] = trim($_REQUEST['server']);
+		$passwd = ep_request('passwd');
+		$max_record = ep_request('max_record');
+		$status = ep_request('status');
+		$arr['passwd'] = $passwd ? trim($passwd) : $this->get_salt(6);
+		$arr['max_record'] = $max_record ? intval($max_record) : 10;
+		$arr['status'] = $status ? intval($status) : '0';
+		$arr['server'] = trim(ep_request('server'));
 
 		if (!$arr['server']) {
 			$json['msg'] = 'server 解析服务器不能为空';
 			exit(json_encode($json));
 		}
 
-		$arr['salt'] = $_REQUEST['salt'] ? trim($_REQUEST['salt']) : $this->get_salt();
+		$salt = ep_request('salt');
+		$arr['salt'] = $salt ? trim($salt) : $this->get_salt();
 		$result = apicall('domain', 'domainAdd', array($arr));
 
 		if ($result) {
@@ -117,7 +123,7 @@ class DnsControl extends Control
 		$i = 0;
 
 		while ($i < $leng) {
-			$round = rand(0, $str_len);
+			$round = rand(0, $str_len - 1);
 			$salt .= $str[$round];
 			++$i;
 		}
@@ -171,17 +177,18 @@ class DnsControl extends Control
 	public function record_get()
 	{
 		$json['status'] = 400;
+		$arr = array();
 
-		if ($_REQUEST['id']) {
-			$arr['id'] = intval($_REQUEST['id']);
+		if (ep_request('id')) {
+			$arr['id'] = intval(ep_request('id'));
 		}
 
-		if ($_REQUEST['domain']) {
-			$arr['domain'] = trim($_REQUEST['domain']);
+		if (ep_request('domain')) {
+			$arr['domain'] = trim(ep_request('domain'));
 		}
 
-		if ($_REQUEST['name']) {
-			$arr['name'] = trim($_REQUEST['name']);
+		if (ep_request('name')) {
+			$arr['name'] = trim(ep_request('name'));
 		}
 
 		if (!$arr) {
@@ -207,17 +214,18 @@ class DnsControl extends Control
 	public function record_del()
 	{
 		$json['status'] = 400;
+		$arr = array();
 
-		if ($_REQUEST['id']) {
-			$arr['id'] = intval($_REQUEST['id']);
+		if (ep_request('id')) {
+			$arr['id'] = intval(ep_request('id'));
 		}
 
-		if ($_REQUEST['domain']) {
-			$arr['domain'] = trim($_REQUEST['domain']);
+		if (ep_request('domain')) {
+			$arr['domain'] = trim(ep_request('domain'));
 		}
 
-		if ($_REQUEST['name']) {
-			$arr['name'] = trim($_REQUEST['name']);
+		if (ep_request('name')) {
+			$arr['name'] = trim(ep_request('name'));
 		}
 
 		if (!$arr) {
@@ -244,24 +252,28 @@ class DnsControl extends Control
 	public function record_add()
 	{
 		$json['status'] = 400;
-		$arr['domain'] = trim($_REQUEST['domain']);
+		$arr['domain'] = trim(ep_request('domain'));
 
 		if (!$arr['domain']) {
 			$json['msg'] = 'domain 域名不能为空';
 			exit(json_encode($json));
 		}
 
-		$arr['name'] = $_REQUEST['name'] ? trim($_REQUEST['name']) : '@';
-		$arr['type'] = $_REQUEST['type'] ? trim($_REQUEST['type']) : 'A';
-		$arr['value'] = trim($_REQUEST['value']);
+		$name = ep_request('name');
+		$type = ep_request('type');
+		$arr['name'] = $name ? trim($name) : '@';
+		$arr['type'] = $type ? trim($type) : 'A';
+		$arr['value'] = trim(ep_request('value'));
 
 		if (!$arr['value']) {
 			$json['msg'] = 'value 解析值不能为空';
 			exit(json_encode($json));
 		}
 
-		$arr['ttl'] = $_REQUEST['ttl'] ? intval($_REQUEST['ttl']) : 3600;
-		$arr['view'] = $_REQUEST['view'] ? trim($_REQUEST['view']) : 'any';
+		$ttl = ep_request('ttl');
+		$view = ep_request('view');
+		$arr['ttl'] = $ttl ? intval($ttl) : 3600;
+		$arr['view'] = $view ? trim($view) : 'any';
 
 		if ($_REQUEST['prio']) {
 			$arr['prio'] = intval($_REQUEST['prio']);
@@ -271,10 +283,11 @@ class DnsControl extends Control
 		$fields = array('max_record');
 		$max = daocall('domains', 'getDomain', array($attr, $fields));
 
-		if (intval($max['max_record']) != 0) {
+		if (is_array($max) && isset($max['max_record']) && intval($max['max_record']) != 0) {
 			$max_re = daocall('records', 'recordGetCount', array($arr['domain']));
+			$record_count = is_array($max_re) && isset($max_re['count']) ? intval($max_re['count']) : 0;
 
-			if ($max['max_record'] <= $max_re['max_record']) {
+			if ($max['max_record'] <= $record_count) {
 				$json['msg'] = '已达到最多解析条数';
 				exit(json_encode($json));
 			}
@@ -293,8 +306,10 @@ class DnsControl extends Control
 
 	public function sync_init()
 	{
-		$info = (array) json_decode(base64_decode($_REQUEST['info']));
-		$views = $info['views'];
+		$raw = @base64_decode(ep_str(isset($_REQUEST['info']) ? $_REQUEST['info'] : ''));
+		$decoded = json_decode($raw);
+		$info = (is_object($decoded) || is_array($decoded)) ? (array) $decoded : array();
+		$views = ep_iter(isset($info['views']) ? $info['views'] : array());
 
 		if (0 < count($views)) {
 			foreach ($views as $view) {
@@ -303,7 +318,7 @@ class DnsControl extends Control
 			}
 		}
 
-		if ($info['ip']) {
+		if (!empty($info['ip'])) {
 			$ip_tmp_file = $this->ip_file . '.tmp';
 
 			if (file_exists($this->ip_file)) {

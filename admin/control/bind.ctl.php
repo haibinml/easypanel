@@ -20,7 +20,7 @@ class BindControl extends Control
 
 		$views = daocall('views', 'viewsList', array());
 
-		if (count($views) <= 0) {
+		if (!is_array($views) || count($views) <= 0) {
 			exit('请先同步线路');
 		}
 
@@ -65,7 +65,7 @@ class BindControl extends Control
 
 		$server = daocall('servers', 'serverGet', array());
 
-		if (count($server) <= 0) {
+		if (!is_array($server) || count($server) <= 0) {
 			exit('未添加DNS服务器');
 		}
 

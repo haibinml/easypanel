@@ -1,6 +1,6 @@
 <?php
 needRole('admin');
-define(GZIPNAME, 'gzip');
+define('GZIPNAME', 'gzip');
 class ResponseControl extends control
 {
 	public function __construct()
@@ -27,7 +27,7 @@ class ResponseControl extends control
 		$arr['name'] = GZIPNAME;
 		$header = 'Content-Type';
 		$models['acl_header'] = array('header' => $header, 'val' => $val, 'regex' => 1);
-		$models['mark_response_flag'] = array('flagvalue' => 'gzip');
+		$models['mark_response_flag'] = array('flagvalue' => 'compress');
 		$access = new Access(null, 'response');
 
 		if (!$access->findChain('BEGIN', GZIPNAME)) {

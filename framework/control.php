@@ -14,7 +14,7 @@ class Control
 	{
 		global $__core_env;
 		$rand = rand(1000, 9999);
-		$__core_env['__LIUSHUIHAO__'] = time() . $UID . $rand;
+		$__core_env['__LIUSHUIHAO__'] = time() . (isset($UID) ? $UID : '') . $rand;
 		$this->__out = &$__core_env['out'];
 		$this->_tpl = tpl::singleton();
 	}
@@ -75,15 +75,19 @@ class Control
 
 	protected function out_error($errno = 500, $ret = false)
 	{
-		if ($ret['title'] == '') {
+		if (!is_array($ret)) {
+			$ret = array();
+		}
+
+		if (!isset($ret['title']) || $ret['title'] == '') {
 			$ret['title'] = '';
 		}
 
-		if ($ret['content'] == '') {
+		if (!isset($ret['content']) || $ret['content'] == '') {
 			$ret['content'] = '没有信息';
 		}
 
-		if ($ret['url'] == '') {
+		if (!isset($ret['url']) || $ret['url'] == '') {
 			$ret['url'] = '?c=user&a=info';
 		}
 
@@ -95,15 +99,19 @@ class Control
 
 	protected function out_result($ret = array())
 	{
-		if ($ret['title'] == '') {
+		if (!is_array($ret)) {
+			$ret = array();
+		}
+
+		if (!isset($ret['title']) || $ret['title'] == '') {
 			$ret['title'] = '';
 		}
 
-		if ($ret['content'] == '') {
+		if (!isset($ret['content']) || $ret['content'] == '') {
 			$ret['content'] = '没有信息';
 		}
 
-		if ($ret['url'] == '') {
+		if (!isset($ret['url']) || $ret['url'] == '') {
 			$ret['url'] = '?c=user&a=info';
 		}
 

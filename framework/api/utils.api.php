@@ -6,7 +6,7 @@ class UtilsAPI extends API
 		$dns_file = $GLOBALS['safe_dir'] . 'dns.db';
 
 		if (!file_exists($dns_file)) {
-			$pdo = new PDO('sqlite:' . $dns_file);
+			$pdo = ep_new_pdo('sqlite:' . $dns_file);
 			$sqls = array("CREATE TABLE [domains] (\r\n\t\t\t\t\t[name] VARCHAR(255)  PRIMARY KEY NULL,\r\n\t\t\t\t\t[passwd] VARCHAR(255)  NULL,\r\n\t\t\t\t\t[salt] VARCHAR(255)  NULL,\r\n\t\t\t\t\t[status] INTEGER  NULL,\r\n\t\t\t\t\t[max_record] INTEGER  NULL,\r\n\t\t\t\t\t[server] VARCHAR(255)  NULL\r\n\t\t\t)", "CREATE TABLE [records] (\r\n\t\t\t\t\t[id] INTEGER  PRIMARY KEY AUTOINCREMENT NOT NULL,\r\n\t\t\t\t\t[domain] VARCHAR(255)  NULL,\r\n\t\t\t\t\t[name] VARCHAR(255)  NULL,\r\n\t\t\t\t\t[type] VARCHAR(16)  NULL,\r\n\t\t\t\t\t[value] TEXT  NULL,\r\n\t\t\t\t\t[view] VARCHAR(255)  NULL,\r\n\t\t\t\t\t[ttl] INTEGER  NULL,\r\n\t\t\t\t\t[status] INTEGER DEFAULT '0' NULL,\r\n\t\t\t\t\t[prio] INTEGER  NULL,\r\n\t\t\t\t\t[change_date] TIMESTAMP  NULL\r\n\t\t\t)", "CREATE TABLE [servers] (\r\n\t\t\t\t\t[server] VARCHAR(255)  PRIMARY KEY NOT NULL,\r\n\t\t\t\t\t[ns] VARCHAR(255)  NULL\r\n\t\t\t)", "CREATE TABLE [slaves] (\r\n\t\t\t\t\t[server] VARCHAR(255)  NULL,\r\n\t\t\t\t\t[slave] VARCHAR(255)  NULL,\r\n\t\t\t\t\t[ns] VARCHAR(255)  NULL,\r\n\t\t\t\t\t[skey] VARCHAR(255)  NULL,\r\n\t\t\t\t\tPRIMARY KEY ([server],[slave])\r\n\t\t\t)", "CREATE TABLE [views] (\r\n\t\t\t\t\t[name] VARCHAR(255)  PRIMARY KEY NULL,\r\n\t\t\t\t\t[desc] VARCHAR(255)  NULL,\r\n\t\t\t\t\t[key] VARCHAR(255)  NULL,\r\n\t\t\t\t\t[id] INTEGER  UNIQUE NOT NULL\r\n\t\t\t)");
 
 			foreach ($sqls as $sql) {
@@ -74,7 +74,9 @@ class UtilsAPI extends API
 			$macarray = $this->getMacForLin();
 		}
 
+		$macarray = is_array($macarray) ? $macarray : array();
 		$temp_array = array();
+		$macaddr = '';
 
 		foreach ($macarray as $value) {
 			if (preg_match('/[0-9a-f][0-9a-f][:-]' . '[0-9a-f][0-9a-f][:-]' . '[0-9a-f][0-9a-f][:-]' . '[0-9a-f][0-9a-f][:-]' . '[0-9a-f][0-9a-f][:-]' . '[0-9a-f][0-9a-f]/i', $value, $temp_array)) {
@@ -93,6 +95,7 @@ class UtilsAPI extends API
 	 */
 	private function getMacForWin()
 	{
+		$macarr = array();
 		@exec('ipconfig /all', $macarr);
 
 		if (!$macarr) {
@@ -115,6 +118,7 @@ class UtilsAPI extends API
 	 */
 	private function getMacForLin()
 	{
+		$macarr = array();
 		@exec('ifconfig -a', $macarr);
 		return $macarr;
 	}
@@ -209,7 +213,7 @@ class UtilsAPI extends API
 
 		if (is_array($vhs)) {
 			$dsn = 'mysql:host=' . $db_host . ';dbname=' . $db_name;
-			$pdo = new PDO($dsn, $db_user, $db_passwd, array(PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8'));
+			$pdo = ep_new_pdo($dsn, $db_user, $db_passwd, array(PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8'));
 
 			if (!$pdo) {
 				exit('pdo not connect');
@@ -230,8 +234,8 @@ class UtilsAPI extends API
 				$username = $user;
 				$flow = $vh['flow_limit'] ? $vh['flow_limit'] : '0';
 				$sql = 'insert into vhost(name,passwd,doc_root,gid,templete,subtemplete,create_time,expire_time,status,node,product_id,username,flow) ';
-				$sql .= 'values(\'' . $name . '\',\'' . $passwd . '\',\'' . $doc_root . '\',\'' . $gid . '\',\'' . $templete . '\',\'' . $subtemplete . '\',\'' . $create_time . '\',\'' . $expire_time . '\',\'' . $status . '\'';
-				$sql .= ',\'' . $node . '\',\'' . $product_id . '\',\'' . $username . '\',\'' . $flow . '\')';
+				$sql .= 'values(\'' . str_replace('\'', '\'\'', ep_str($name)) . '\',\'' . str_replace('\'', '\'\'', ep_str($passwd)) . '\',\'' . str_replace('\'', '\'\'', ep_str($doc_root)) . '\',\'' . str_replace('\'', '\'\'', ep_str($gid)) . '\',\'' . str_replace('\'', '\'\'', ep_str($templete)) . '\',\'' . str_replace('\'', '\'\'', ep_str($subtemplete)) . '\',\'' . str_replace('\'', '\'\'', ep_str($create_time)) . '\',\'' . str_replace('\'', '\'\'', ep_str($expire_time)) . '\',\'' . str_replace('\'', '\'\'', ep_str($status)) . '\'';
+				$sql .= ',\'' . str_replace('\'', '\'\'', ep_str($node)) . '\',\'' . str_replace('\'', '\'\'', ep_str($product_id)) . '\',\'' . str_replace('\'', '\'\'', ep_str($username)) . '\',\'' . str_replace('\'', '\'\'', ep_str($flow)) . '\')';
 
 				if ($pdo->query($sql)) {
 					echo 'sync ';
@@ -333,7 +337,7 @@ class UtilsAPI extends API
 				$item .= ',';
 			}
 
-			$item .= '\'' . $key . '\'=>"' . addcslashes($value, '\\"$') . '"';
+			$item .= '\'' . $key . '\'=>"' . addcslashes(ep_str($value), '\\"$') . '"';
 			++$i;
 		}
 

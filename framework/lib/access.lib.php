@@ -19,7 +19,17 @@ class Access
 			return false;
 		}
 
-		return $result->getAll('table');
+		$tables = $result->getAll('table');
+		if (!is_array($tables)) {
+			return array();
+		}
+		$ret = array();
+		foreach ($tables as $table) {
+			// kangle 3.6 returns structured table data for the new console,
+			// while the long-standing WHM protocol returned a plain name.
+			$ret[] = isset($table->name) ? (string) $table->name : (string) $table;
+		}
+		return $ret;
 	}
 
 	public function addTable($table)
@@ -59,7 +69,7 @@ class Access
 			return false;
 		}
 
-		return $result->get('table_info')->children();
+		return $this->normalizeLegacyChainValues($result->get('table_info')->children());
 	}
 
 	/**
@@ -75,7 +85,63 @@ class Access
 			return false;
 		}
 
-		return $result->get('table_info')->children();
+		return $this->normalizeLegacyChainValues($result->get('table_info')->children());
+	}
+
+	/**
+	 * kangle 3.6 serializes model parameters as attributes. Older WHM output
+	 * also exposed each model's primary value as its element text, which the
+	 * existing EasyPanel controllers use for list-page display. Restore that
+	 * representation while retaining every attribute for newer callers.
+	 */
+	private function normalizeLegacyChainValues($table)
+	{
+		if (!$table) {
+			return $table;
+		}
+
+		$primary_attributes = array(
+			'acl_file_ext' => 'v',
+			'acl_header' => 'val',
+			'acl_host' => 'v',
+			'acl_meth' => 'meth',
+			'acl_path' => 'path',
+			'acl_referer' => 'referer',
+			'acl_reg_path' => 'path',
+			'acl_self_ports' => 'v',
+			'acl_src' => 'ip',
+			'acl_srcs' => 'v',
+			'acl_url' => 'url',
+			'acl_wide_host' => 'v',
+			'mark_content' => 'content',
+			'mark_gspeed_limit' => 'limit',
+			'mark_host' => 'host',
+			'mark_host_rewrite' => 'host',
+			'mark_ip_speed_limit' => 'speed_limit',
+			'mark_param' => 'value',
+			'mark_post_file' => 'filename',
+			'mark_redirect' => 'dst',
+			'mark_rewrite' => 'dst',
+			'mark_speed_limit' => 'limit',
+			'mark_url_rewrite' => 'dst',
+		);
+
+		foreach ($table->children() as $chain) {
+			foreach ($chain->children() as $model) {
+				if ((string) $model !== '') {
+					continue;
+				}
+				$name = $model->getName();
+				if (!isset($primary_attributes[$name])) {
+					continue;
+				}
+				$value = (string) $model[$primary_attributes[$name]];
+				if ($value !== '') {
+					$model[0] = $value;
+				}
+			}
+		}
+		return $table;
 	}
 
 	public function editChain($table, $arr, $models = null)

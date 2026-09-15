@@ -47,13 +47,14 @@ class CdnPrimaryAPI extends API
 	 */
 	public function sync(array $names)
 	{
-		$nodes = daocall('manynode', 'get');
+		$nodes = ep_iter(daocall('manynode', 'get'));
 		$sync_vhost = array();
 		$del_vhost = array();
 		$url = array();
 
 		foreach ($names as $name) {
-			$op = $name[0];
+			$name = ep_str($name);
+			$op = substr($name, 0, 1);
 
 			if ($op == '-') {
 				$del_vhost[] = substr($name, 1);
@@ -71,6 +72,7 @@ class CdnPrimaryAPI extends API
 			}
 		}
 
+		$lvhs = null;
 		if (0 < count($sync_vhost) || 0 < count($del_vhost)) {
 			$lvhs = $this->load_local_vhs();
 		}
@@ -122,7 +124,7 @@ class CdnPrimaryAPI extends API
 	public function sync_all()
 	{
 		$this->sync_localhost_flow('global.db');
-		$nodes = daocall('manynode', 'get');
+		$nodes = ep_iter(daocall('manynode', 'get'));
 
 		foreach ($nodes as $node) {
 			$this->sync_node($node);
@@ -234,6 +236,7 @@ class CdnPrimaryAPI extends API
 
 		$flows = (string) $result->get('flow', 0);
 		$lines = explode("\n", $flows);
+		$vhs = array();
 
 		foreach ($lines as $line) {
 			$item = explode('	', $line);
@@ -263,9 +266,10 @@ class CdnPrimaryAPI extends API
 		}
 
 		$this->local_vhs_loaded = true;
+		$this->local_vhs = array();
 		$vhs = daocall('vhost', 'listVhostNotcdn', array($this->cdn_prefix, CdnPrimaryAPI::$sync_vhost_fields));
 
-		foreach ($vhs as $vh) {
+		foreach (ep_iter($vhs) as $vh) {
 			$this->local_vhs[$vh['name']] = $vh;
 		}
 
@@ -280,7 +284,10 @@ class CdnPrimaryAPI extends API
 	 */
 	private function getSyncVhostResult($local_vhs, $remote_vhs)
 	{
-		foreach ($local_vhs as $vh) {
+		$sync = array();
+		$del = array();
+
+		foreach (ep_iter($local_vhs) as $vh) {
 			if (isset($remote_vhs[$vh['name']])) {
 				if (intval($vh['sync_seq']) != intval($remote_vhs[$vh['name']]['sync_seq'])) {
 					$sync[] = $vh['name'];
@@ -316,28 +323,36 @@ class CdnPrimaryAPI extends API
 			return $this->loaded_vhs_info[$name];
 		}
 
+		if (!is_array($vhs) || !isset($vhs[$name]) || !is_array($vhs[$name])) {
+			return false;
+		}
+
 		$infos = daocall('vhostinfo', 'getAll', array($name));
 		$info2 = array();
 		$vh = $vhs[$name];
+		$this->loaded_vhs_info[$name] = array();
 
-		foreach ($infos as $info) {
+		foreach (ep_iter($infos) as $info) {
 			if ($info['type'] == 2 || $info['type'] == 3 || $info['type'] == 4 || $info['type'] == 5 || $info['type'] == 7) {
 				continue;
 			}
 			if ($info['type'] == 0 && strncasecmp($info['value'], 'server://', 9) == 0 && strpos($info['value'],';') && strpos($info['value'],'.crt') && strpos($info['value'],'.key')){
-				$certificate_file = $info['name'] . '.crt';
-				$fp = @fopen($vh['doc_root'] . '/' . $certificate_file, 'rb');
-				if ($fp) {
-					$data = stream_get_contents($fp);
-					$this->loaded_vhs_info[$name]['certs'][$certificate_file] = base64_encode($data);
-					fclose($fp);
-				}
-				$certificate_key_file = $info['name'] . '.key';
-				$fp = @fopen($vh['doc_root'] . '/' . $certificate_key_file, 'rb');
-				if ($fp) {
-					$data = stream_get_contents($fp);
-					$this->loaded_vhs_info[$name]['certs'][$certificate_key_file] = base64_encode($data);
-					fclose($fp);
+				$certificate_name = ep_safe_name($info['name']);
+				if ($certificate_name !== '' && !empty($vh['doc_root'])) {
+					$certificate_file = $certificate_name . '.crt';
+					$fp = @fopen($vh['doc_root'] . '/' . $certificate_file, 'rb');
+					if ($fp) {
+						$data = stream_get_contents($fp);
+						$this->loaded_vhs_info[$name]['certs'][$certificate_file] = base64_encode($data);
+						fclose($fp);
+					}
+					$certificate_key_file = $certificate_name . '.key';
+					$fp = @fopen($vh['doc_root'] . '/' . $certificate_key_file, 'rb');
+					if ($fp) {
+						$data = stream_get_contents($fp);
+						$this->loaded_vhs_info[$name]['certs'][$certificate_key_file] = base64_encode($data);
+						fclose($fp);
+					}
 				}
 			}
 
@@ -346,7 +361,7 @@ class CdnPrimaryAPI extends API
 
 		$this->loaded_vhs_info[$name]['info'] = $info2;
 
-		if ($vh['access']) {
+		if (!empty($vh['access']) && !empty($vh['doc_root'])) {
 			$fp = @fopen($vh['doc_root'] . '/' . $vh['access'], 'rb');
 
 			if ($fp) {
@@ -356,7 +371,7 @@ class CdnPrimaryAPI extends API
 			}
 		}
 
-		if ($vh['certificate']) {
+		if (!empty($vh['certificate']) && !empty($vh['doc_root'])) {
 			$fp = @fopen($vh['doc_root'] . '/' . $vh['certificate'], 'rb');
 
 			if ($fp) {
@@ -366,7 +381,7 @@ class CdnPrimaryAPI extends API
 			}
 		}
 
-		if ($vh['certificate_key']) {
+		if (!empty($vh['certificate_key']) && !empty($vh['doc_root'])) {
 			$fp = @fopen($vh['doc_root'] . '/' . $vh['certificate_key'], 'rb');
 
 			if ($fp) {
@@ -389,10 +404,18 @@ class CdnPrimaryAPI extends API
 	 */
 	private function sync_node_vhost($node, $vhs, $sync_vhost, $del_vhost, $remove_cache_url = null)
 	{
+		$sync = array();
+		$del = array();
+		$url = array();
+
 		if (is_array($sync_vhost)) {
 			foreach ($sync_vhost as $name) {
 				if(strpos($name,'@')!==false)continue;
 				$vh = $this->load_vhost_info($name, $vhs);
+				if (!is_array($vh) || !isset($vhs[$name])) {
+					continue;
+				}
+
 				$vh['v'] = $vhs[$name];
 				$sync[] = $vh;
 			}
@@ -410,7 +433,7 @@ class CdnPrimaryAPI extends API
 			}
 		}
 
-		if (!isset($sync) && !isset($del) && !isset($url)) {
+		if (count($sync) == 0 && count($del) == 0 && count($url) == 0) {
 			return false;
 		}
 

@@ -7,7 +7,7 @@ class ServerAPI extends API
 			$arr['server'] = $server;
 			$slave = daocall('slaves', 'slavesGet', array($arr));
 
-			if (0 < count($slave)) {
+			if (is_array($slave) && 0 < count($slave)) {
 				return daocall('slaves', 'slaveDel', array($server));
 			}
 

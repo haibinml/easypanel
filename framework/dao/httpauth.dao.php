@@ -35,7 +35,7 @@ class HttpauthDAO extends DAO
 	private function getPassword($passwd)
 	{
 		$salt = getRandPasswd(8);
-		$src = $passwd . $salt;
+		$src = ep_str($passwd) . $salt;
 		return md5($src) . $salt;
 	}
 }

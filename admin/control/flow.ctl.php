@@ -14,7 +14,7 @@ class FlowControl extends control
 
 		$time = date('YmdH', time());
 
-		switch ($_REQUEST['t']) {
+		switch (ep_request('t')) {
 		case 'day':
 			$t = substr($time, 0, 8);
 			$table = 'flow_day';
@@ -34,13 +34,21 @@ class FlowControl extends control
 			break;
 		}
 
-		$page = $_REQUEST['page'] ? $_REQUEST['page'] : 1;
-		$count = $_REQUEST['count'] ? $_REQUEST['count'] : 25;
-		$flows = $flowobj->getAll($table, $t, $count);
+		$page = intval(ep_request('page'));
+		$count = intval(ep_request('count'));
+
+		if ($page <= 0) {
+			$page = 1;
+		}
+
+		if ($count <= 0) {
+			$count = 25;
+		}
+		$flows = ep_iter($flowobj->getAll($table, $t, $count));
 		$this->_tpl->assign('data', $data);
-		$this->_tpl->assign('t', $_REQUEST['t']);
+		$this->_tpl->assign('t', ep_request('t'));
 		$this->_tpl->assign('flows', $flows);
-		$this->_tpl->assign('date', $flows[0]['t']);
+		$this->_tpl->assign('date', (isset($flows[0]) && is_array($flows[0]) && isset($flows[0]['t'])) ? $flows[0]['t'] : '');
 		return $this->_tpl->display('flow/sort.html');
 	}
 }

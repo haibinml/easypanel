@@ -43,8 +43,8 @@ class TPL
 			self::$instance->template_dir = APPLICATON_ROOT . '/view/' . $view_dir;
 			self::$instance->compile_dir = SYS_ROOT . '/templates_c/' . $view_dir;
 
-			if (!defined(TPL_ROOT)) {
-				define(TPL_ROOT, dirname($_SERVER['PHP_SELF']));
+			if (!defined('TPL_ROOT')) {
+				define('TPL_ROOT', dirname(isset($_SERVER['PHP_SELF']) ? $_SERVER['PHP_SELF'] : ''));
 			}
 
 			$static = TPL_ROOT;

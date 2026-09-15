@@ -9,16 +9,16 @@ class RecordControl extends Control
 
 	public function recordAdd()
 	{
-		$domain = trim($_REQUEST['domain']);
-		$name = trim($_REQUEST['name']);
+		$domain = trim(ep_request('domain'));
+		$name = trim(ep_request('name'));
 
 		if (!$name) {
 			$name = '@';
 		}
 
-		$type = trim($_REQUEST['type']);
-		$value = trim($_REQUEST['value']);
-		$view = trim($_REQUEST['view']);
+		$type = trim(ep_request('type'));
+		$value = trim(ep_request('value'));
+		$view = trim(ep_request('view'));
 		$ttl = intval($_REQUEST['ttl']);
 	}
 

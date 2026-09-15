@@ -9,9 +9,13 @@ function whm_return2($whmResult, $info = null)
 		$status = 200;
 		$ret = array();
 	}
-	else {
+	else if (is_object($whmResult) && method_exists($whmResult, 'getResult')) {
 		$status = $whmResult->status;
 		$ret = $whmResult->getResult();
+	}
+	else {
+		$status = is_numeric($whmResult) ? intval($whmResult) : 500;
+		$ret = array();
 	}
 
 	if (is_array($info)) {
@@ -23,12 +27,20 @@ function whm_return2($whmResult, $info = null)
 
 function proxy_call($whm_package = 'core.whm', $info = null)
 {
-	$whm_call = $_REQUEST['a'];
+	$whm_call = ep_request('a');
 	$whm = apicall('nodes', 'makeWhm', array('localhost'));
+	if (!is_object($whm)) {
+		whm_return(500);
+	}
+
 	$whmCall = new WhmCall($whm_package, $whm_call);
 
 	foreach ($_REQUEST as $name => $value) {
 		if ($name == 'a' || $name == 'c') {
+			continue;
+		}
+
+		if (is_array($value) || is_object($value)) {
 			continue;
 		}
 
@@ -95,6 +107,7 @@ class WhmControl extends Control
 	public function listVh()
 	{
 		$list = daocall('vhost', 'listVhost', array());
+		$newlist = array();
 
 		if ($list) {
 			if (!$_REQUEST['showpasswd']) {
@@ -126,8 +139,14 @@ class WhmControl extends Control
 
 	public function getDbUsed()
 	{
-		$name = $_REQUEST['name'];
+		$name = ep_request('name');
 		$db = apicall('nodes', 'makeDbProduct', array('localhost'));
+
+		if (!$db) {
+			whm_return(500);
+			return;
+		}
+
 		$db_used = $db->used($name, true);
 
 		if ($db_used !== false) {
@@ -166,9 +185,9 @@ class WhmControl extends Control
 		}
 
 		unset($_REQUEST['doc_root']);
-		$_REQUEST['htaccess'] = $_REQUEST['htaccess'] == 1 ? '.htaccess' : null;
-		$_REQUEST['access'] = $_REQUEST['access'] == 1 ? 'access.xml' : null;
-		$_REQUEST['log_file'] = $_REQUEST['log_file'] == 1 ? 'logs/access.log' : null;
+		$_REQUEST['htaccess'] = (isset($_REQUEST['htaccess']) && $_REQUEST['htaccess'] == 1) ? '.htaccess' : null;
+		$_REQUEST['access'] = (isset($_REQUEST['access']) && $_REQUEST['access'] == 1) ? 'access.xml' : null;
+		$_REQUEST['log_file'] = (isset($_REQUEST['log_file']) && $_REQUEST['log_file'] == 1) ? 'logs/access.log' : null;
 		$result = apicall('vhost', 'addVhost', array($_REQUEST));
 		whm_return($result ? 200 : 500);
 	}
@@ -177,10 +196,11 @@ class WhmControl extends Control
 	{
 		$vhs = daocall('vhost', 'listVhost', array());
 
-		if (count($vhs) < 0) {
+		if (!is_array($vhs) || count($vhs) <= 0) {
 			whm_return(500);
 		}
 
+		$v = array();
 		foreach ($vhs as $vh) {
 			$v[] = $vh['name'];
 		}
@@ -279,7 +299,7 @@ class WhmControl extends Control
 	{
 		$products = daocall('product', 'getProducts', array());
 
-		if (count($products) < 0) {
+		if (!is_array($products) || count($products) <= 0) {
 			whm_return(204);
 		}
 
@@ -289,7 +309,13 @@ class WhmControl extends Control
 
 	public function migrate_down()
 	{
-		$file_name = trim($_REQUEST['f']);
+		$file_name = ep_safe_name(basename(str_replace('\\', '/', ep_request('f'))));
+
+		if ($file_name === '') {
+			header('Status: 404');
+			exit();
+		}
+
 		$fp = fopen(TMP_FILE_DIR . $file_name, 'rb');
 
 		if (!$fp) {
@@ -303,7 +329,7 @@ class WhmControl extends Control
 		while (true) {
 			$str = fread($fp, 8192);
 
-			if ($str == FALSE) {
+			if ($str === false || $str === '') {
 				break;
 			}
 

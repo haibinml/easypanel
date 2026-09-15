@@ -12,6 +12,7 @@ function sys_linux()
 	$days = floor($hours / 24);
 	$hours = floor($hours - $days * 24);
 	$min = floor($min - $days * 60 * 24 - $hours * 60);
+	$res = array('uptime' => '');
 
 	if ($days !== 0) {
 		$res['uptime'] = $days . '天';
@@ -105,7 +106,7 @@ function GetWMI($wmi, $strClass, $strValue = array())
 		$arrInstance = array();
 
 		foreach ($arrProp as $propItem) {
-			eval ('$value = $objItem->' . $propItem->Name . ';');
+			$value = $objItem->{$propItem->Name};
 
 			if (empty($strValue)) {
 				$arrInstance[$propItem->Name] = trim($value);
@@ -134,7 +135,7 @@ function sys_info()
 		break;
 	}
 
-	return $sysInfo;
+	return false;
 }
 
 

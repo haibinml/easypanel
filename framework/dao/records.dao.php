@@ -12,7 +12,7 @@ class RecordsDAO extends DAO
 
 	public function recordGetCount($domain)
 	{
-		$sql = 'select count(domain) as count from ' . $this->_TABLE . ' where domain=\'' . $domain . '\'';
+		$sql = 'select count(domain) as count from ' . $this->_TABLE . ' where domain=\'' . $this->daddslashes($domain) . '\'';
 		return $this->executex($sql, 'row');
 	}
 
@@ -30,18 +30,24 @@ class RecordsDAO extends DAO
 	 */
 	public function recordDel($arr = array())
 	{
-		if ($arr['id']) {
+		if (!is_array($arr)) {
+			return false;
+		}
+
+		$where = '';
+
+		if (!empty($arr['id'])) {
 			$where = $this->getFieldValue2('id', $arr['id']);
 
-			if ($arr['domain']) {
+			if (!empty($arr['domain'])) {
 				$where .= ' and ' . $this->getFieldValue2('domain', $arr['domain']);
 			}
 		}
 		else {
-			if ($arr['domain']) {
+			if (!empty($arr['domain'])) {
 				$where = $this->getFieldValue2('domain', $arr['domain']);
 
-				if ($arr['name']) {
+				if (!empty($arr['name'])) {
 					$where .= ' and ' . $this->getFieldValue2('name', $arr['name']);
 				}
 			}
@@ -130,7 +136,7 @@ class RecordsDAO extends DAO
 		return $this->select(null, $where, $type);
 	}
 
-	public function recordPageList($page, $page_count, $count, $where_arr = null, $order_field = null)
+	public function recordPageList($page, $page_count, &$count, $where_arr = null, $order_field = null)
 	{
 		$fields = array('id', 'domain', 'name', 'type', 'value', 'view', 'ttl', 'status', 'prio', 'change_date');
 
@@ -139,16 +145,17 @@ class RecordsDAO extends DAO
 		}
 
 		$where = null;
+		$desc = false;
 
-		if ($where_arr['id']) {
+		if (is_array($where_arr) && !empty($where_arr['id'])) {
 			$where = $this->getFieldValue2('id', $where_arr['id']);
 		}
 
-		if ($where_arr['domain']) {
+		if (is_array($where_arr) && !empty($where_arr['domain'])) {
 			$where = $this->getFieldValue2('domain', $where_arr['domain']);
 		}
 
-		if ($where_arr['view']) {
+		if (is_array($where_arr) && !empty($where_arr['view'])) {
 			$where = $this->getFieldValue2('view', $where_arr['view']);
 		}
 

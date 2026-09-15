@@ -38,6 +38,7 @@ class HttpauthAPI extends API
 	public function sync($vhost)
 	{
 		$users = daocall('httpauth', 'getAll', array($vhost));
+		$users = ep_iter($users);
 
 		$str = '';
 
@@ -64,7 +65,7 @@ class HttpauthAPI extends API
 
 	public function getFileName($vhost)
 	{
-		return $GLOBALS['safe_dir'] . 'httpauth/' . $vhost . '.txt';
+		return $GLOBALS['safe_dir'] . 'httpauth/' . ep_safe_name($vhost) . '.txt';
 	}
 }
 

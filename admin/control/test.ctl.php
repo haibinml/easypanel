@@ -5,7 +5,12 @@ class SelectorTestEvent extends SelectorEvent
 {
 	public function read(&$selector)
 	{
-		$str = fread($fp, 1024);
+		if (!$this->fd) {
+			$selector->removeRead($this);
+			return NULL;
+		}
+
+		$str = fread($this->fd, 1024);
 
 		if (strlen($str) <= 0) {
 			$selector->removeRead($this);

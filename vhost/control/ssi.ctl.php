@@ -22,7 +22,7 @@ class SsiControl extends Control
 		$path_map = array();
 		$file_map = array();
 
-		foreach ($maps as $map) {
+		foreach (ep_iter($maps) as $map) {
 			$name = substr($map['name'], 2);
 
 			if (substr($map['name'], 0, 1) == '1') {

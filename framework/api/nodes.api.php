@@ -323,16 +323,8 @@ class NodesAPI extends API
 			$os = substr(php_uname('s'), 0, 3);
 			$params = $setting['params'];
 			$tpl->assign('dev', $node_cfg['dev']);
-			$content = $tpl->fetch('vh_db.xml');
-			$filename = $GLOBALS['safe_dir'] . 'vh_db.xml';
-			$fp = fopen($filename, 'wb');
 
-			if ($fp) {
-				fwrite($fp, $content);
-				fclose($fp);
-			}
-
-			$tpl->assign('php_extend', $php_extend);
+			//$tpl->assign('php_extend', $php_extend);
 			$content = $tpl->fetch('templete.xml');
 			$filename = $GLOBALS['safe_dir'] . '../ext/templete.xml';
 			$fp = fopen($filename, 'wb');

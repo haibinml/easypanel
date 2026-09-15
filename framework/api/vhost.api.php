@@ -329,6 +329,9 @@ class VhostAPI extends API
 		$whmCall = new WhmCall('core.whm', 'clean_cache');
 		$whmCall->addParam('url', $url);
 		$result = $whm->call($whmCall);
+		if (!$result || $result->getCode() != 200) {
+			return false;
+		}
 
 		if ($need_sync) {
 			if (0 < daocall('manynode', 'getCount')) {
@@ -547,7 +550,7 @@ class VhostAPI extends API
 			return false;
 		}
 
-		if (strtolower($user['passwd']) != strtolower(md5($passwd))) {
+		if (strtolower($user['passwd']) != strtolower(md5(ep_str($passwd)))) {
 			return false;
 		}
 
@@ -604,7 +607,7 @@ class VhostAPI extends API
 			return false;
 		}
 
-		return @exec(copy($file, $filename));
+		return @copy($file, $filename);
 	}
 }
 

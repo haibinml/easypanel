@@ -68,6 +68,11 @@ class IndexControl extends Control
 	{
 		load_lib('pub:sysinfo');
 		$sysinfo = sys_info();
+
+		if (!is_array($sysinfo)) {
+			$sysinfo = array();
+		}
+
 		$sysinfo['os'] = is_win() ? 'windows' : 'linux';
 		exit(json_encode($sysinfo));
 	}
@@ -96,7 +101,7 @@ class IndexControl extends Control
 		}
 
 		$dbisok = daocall('vhost', 'isok', null);
-		$this->assign('dbisok', $dbisok['integrity_check']);
+		$this->assign('dbisok', is_array($dbisok) && isset($dbisok['integrity_check']) ? $dbisok['integrity_check'] : null);
 		$info = apicall('nodes', 'getKangleInfo', array('localhost'));
 		$this->assign('info', $info);
 		$this->assign('EASYPANEL_VERSION', EASYPANEL_VERSION);

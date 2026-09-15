@@ -1,7 +1,11 @@
 <?php
 function verificationSkey()
 {
-	if ($_REQUEST['r'] == '' || $_REQUEST['a'] == '' || $_REQUEST['s'] == '') {
+	$r = ep_request('r');
+	$a = ep_request('a');
+	$s = ep_request('s');
+
+	if ($r == '' || $a == '' || $s == '') {
 		return false;
 	}
 
@@ -11,9 +15,9 @@ function verificationSkey()
 		return false;
 	}
 
-	$urls = $_REQUEST['a'] . $skey . $_REQUEST['r'];
+	$urls = $a . $skey . $r;
 
-	if (md5($urls) == $_REQUEST['s']) {
+	if (ep_hash_equals(md5($urls), $s)) {
 		return true;
 	}
 
@@ -25,18 +29,22 @@ function whm_dump($ret)
 	if (is_array($ret)) {
 		$str = '';
 		foreach ($ret as $k => $v) {
-			$str .= '<' . $k . '>' . whm_dump($v) . '</' . $k . ">\n";
+			$tag = ep_xml_tag($k);
+			$str .= '<' . $tag . '>' . whm_dump($v) . '</' . $tag . ">\n";
 		}
 
 		return $str;
 	}
 
-	return $ret;
+	return ep_xml_escape($ret);
 }
 
 function whm_return($status, $ret = null)
 {
-	if ($_REQUEST['json'] == 1 || $_REQUEST['fmt'] == 'json') {
+	$json_flag = ep_request('json');
+	$fmt = ep_request('fmt');
+
+	if ($json_flag == 1 || $fmt == 'json') {
 		$json['result'] = $status;
 
 		if ($ret) {
@@ -55,19 +63,20 @@ function whm_return($status, $ret = null)
 
 	header('Content-Type: text/xml; charset=utf-8');
 	$str = '<?xml version="1.0" encoding="utf-8"?>';
-	$whm_call = $_REQUEST['a'];
+	$whm_call = ep_xml_tag(ep_request('a'), 'result');
 	$str .= '<' . $whm_call . ' whm_version="1.0">';
-	$str .= '<result status=\'' . $status . '\'>';
+	$str .= '<result status=\'' . ep_xml_escape($status) . '\'>';
 
 	if (is_array($ret)) {
 		foreach ($ret as $k => $v) {
+			$tag = ep_xml_tag($k);
 			if (is_array($v)) {
 				foreach ($v as $sv) {
-					$str .= '<' . $k . '>' . whm_dump($sv) . '</' . $k . ">\n";
+					$str .= '<' . $tag . '>' . whm_dump($sv) . '</' . $tag . ">\n";
 				}
 			}
 			else {
-				$str .= '<' . $k . '>' . $v . '</' . $k . ">\n";
+				$str .= '<' . $tag . '>' . ep_xml_escape($v) . '</' . $tag . ">\n";
 			}
 		}
 	}

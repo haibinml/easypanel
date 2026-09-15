@@ -7,7 +7,7 @@ abstract class DbProduct
 	{
 		$vhost_info = daocall('vhost', 'getVhost', array($name));
 
-		if ($vhost_info['db_name'] != '') {
+		if (is_array($vhost_info) && isset($vhost_info['db_name']) && $vhost_info['db_name'] != '') {
 			return $vhost_info['db_name'];
 		}
 

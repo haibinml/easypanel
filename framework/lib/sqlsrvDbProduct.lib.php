@@ -12,7 +12,7 @@ class SqlsrvDbProduct extends DbProduct
 		$dsn = 'sqlsrv:server=' . $server;
 
 		try {
-			$this->pdo = new PDO($dsn, $node['sqlsrv_user'], $node['sqlsrv_passwd']);
+			$this->pdo = ep_new_pdo($dsn, $node['sqlsrv_user'], $node['sqlsrv_passwd']);
 		}
 		catch (Exception $e) {
 			return false;
@@ -45,7 +45,7 @@ class SqlsrvDbProduct extends DbProduct
 		$db_path = str_replace('/', '\\', $vhost['doc_root']) . '\\database\\';
 		$sql[] = 'CREATE DATABASE ' . $user . ' ON PRIMARY (NAME=' . $user . ',FILENAME=\'' . $db_path . $user . '.ss\',MAXSIZE=' . $vhost['db_quota'] . 'MB,SIZE=5MB)';
 		$sql[] = 'USE ' . $user;
-		$sql[] = 'CREATE LOGIN ' . $user . ' WITH PASSWORD = \'' . $vhost['passwd'] . '\' , DEFAULT_DATABASE=' . $user;
+		$sql[] = 'CREATE LOGIN ' . $user . ' WITH PASSWORD = ' . $this->quoteValue($vhost['passwd']) . ' , DEFAULT_DATABASE=' . $user;
 		$sql[] = 'EXEC sp_grantdbaccess \'' . $user . '\'';
 		$sql[] = 'EXEC sp_addrolemember \'db_owner\', \'' . $user . '\'';
 		return $this->query($sql);
@@ -78,7 +78,7 @@ class SqlsrvDbProduct extends DbProduct
 			return false;
 		}
 
-		$sql[] = 'ALTER LOGIN ' . $user . ' WITH PASSWORD = \'' . $passwd . '\'';
+		$sql[] = 'ALTER LOGIN ' . $user . ' WITH PASSWORD = ' . $this->quoteValue($passwd);
 		return $this->query($sql);
 	}
 
@@ -128,6 +128,15 @@ class SqlsrvDbProduct extends DbProduct
 
 	public function dumpInPassword($user, $passwd)
 	{
+	}
+
+	private function quoteValue($value)
+	{
+		if ($this->pdo) {
+			return $this->pdo->quote(ep_str($value));
+		}
+
+		return '\'' . str_replace(array('\\', '\''), array('\\\\', '\\\''), ep_str($value)) . '\'';
 	}
 }
 

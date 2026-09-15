@@ -1,6 +1,6 @@
 <?php
 needRole('vhost');
-define(VHOST_INFO_ENV_TYPE, 100);
+define('VHOST_INFO_ENV_TYPE', 100);
 class TplenvControl extends Control
 {
 	public function index()
@@ -10,6 +10,11 @@ class TplenvControl extends Control
 		$this->assign('env', apicall('tplenv', 'getEnv', array($user['templete'], $user['subtemplete'])));
 		$info = daocall('vhostinfo', 'getInfo', array($vhost, VHOST_INFO_ENV_TYPE));
 		$i = 0;
+		$val = array();
+
+		if (!is_array($info)) {
+			$info = array();
+		}
 
 		while ($i < count($info)) {
 			$val[$info[$i]['name']] = $info[$i]['value'];
@@ -24,7 +29,7 @@ class TplenvControl extends Control
 	{
 		$vhost = getRole('vhost');
 		$user = $_SESSION['user'][$vhost];
-		$ret = apicall('tplenv', 'setEnv', array($vhost, $user['templete'], $user['subtemplete'], $_REQUEST['name'], $_REQUEST[$_REQUEST['name']]));
+		$ret = apicall('tplenv', 'setEnv', array($vhost, $user['templete'], $user['subtemplete'], ep_request('name'), isset($_REQUEST[ep_request('name')]) ? $_REQUEST[ep_request('name')] : ''));
 
 		if ($ret) {
 			$this->assign('msg', '设置成功');

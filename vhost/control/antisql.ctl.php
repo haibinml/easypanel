@@ -69,7 +69,7 @@ class AntisqlControl extends Control
 		$tables = $this->access->listTable();
 		$table_finded = false;
 
-		foreach ($tables as $table) {
+		foreach (ep_iter($tables) as $table) {
 			if ($table == SQL_TABLE_NAME) {
 				$table_finded = true;
 				break;

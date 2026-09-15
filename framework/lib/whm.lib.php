@@ -90,13 +90,13 @@ class WhmResult
 
 	public function get($name, $index = 0)
 	{
-		$value = $this->result[$name];
-		return $value[$index];
+		$value = isset($this->result[$name]) ? $this->result[$name] : null;
+		return is_array($value) && isset($value[$index]) ? $value[$index] : null;
 	}
 
 	public function getAll($name)
 	{
-		return $this->result[$name];
+		return isset($this->result[$name]) && is_array($this->result[$name]) ? $this->result[$name] : array();
 	}
 
 	public function getCode()
@@ -186,13 +186,13 @@ class WhmClient
 
 	public function get($name, $index = 0)
 	{
-		$value = $this->result[$name];
+		$value = isset($this->result[$name]) ? $this->result[$name] : null;
 
 		if (!$value) {
 			return false;
 		}
 
-		if (count($value) <= $index) {
+		if (!is_array($value) || count($value) <= $index) {
 			return false;
 		}
 
@@ -223,12 +223,12 @@ class WhmClient
 		}
 
 		try {
-			$xml = new SimpleXMLElement($msg);
+			$xml = new SimpleXMLElement($msg, LIBXML_NONET);
 		}
 		catch (Exception $e) {
 			try {
 				$msg = mb_convert_encoding($msg, 'UTF-8', 'GBK');
-				$xml = new SimpleXMLElement($msg);
+				$xml = new SimpleXMLElement($msg, LIBXML_NONET);
 			}
 			catch (Exception $e) {
 				setLastError('callwhm error msg =' . $msg);
@@ -269,6 +269,7 @@ function parseWhmNode($result_node, $level)
 		$node = $nodes->item($i);
 
 		if ($node->nodeType != 1) {
+			++$i;
 			continue;
 		}
 
@@ -310,11 +311,13 @@ class WhmValue extends ArrayObject
 		$this->childs[] = $value;
 	}
 
+	#[\ReturnTypeWillChange]
 	public function offsetGet($name)
 	{
-		return $this->childs[$name];
+		return isset($this->childs[$name]) ? $this->childs[$name] : null;
 	}
 
+	#[\ReturnTypeWillChange]
 	public function count()
 	{
 		return count($this->childs);

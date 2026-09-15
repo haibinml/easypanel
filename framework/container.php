@@ -17,7 +17,7 @@ class Container
 		return self::$container;
 	}
 
-	private function& getObj($className)
+	private function getObj($className)
 	{
 		if (isset($this->objectPool[$className])) {
 			return $this->objectPool[$className];

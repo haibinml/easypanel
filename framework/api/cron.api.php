@@ -60,7 +60,7 @@ class CronAPI extends API
 	public function delAll($vhost)
 	{
 		daocall('cron', 'delAll', array($vhost));
-		$filename = $GLOBALS['safe_dir'] . 'cron.d/cron_' . $vhost . '.xml';
+		$filename = $GLOBALS['safe_dir'] . 'cron.d/cron_' . ep_safe_name($vhost) . '.xml';
 		@unlink($filename);
 		return true;
 	}
@@ -172,7 +172,7 @@ class CronAPI extends API
 
 	private function getFilename($vhost)
 	{
-		return $GLOBALS['safe_dir'] . 'cron.d/cron_' . $vhost . '.xml';
+		return $GLOBALS['safe_dir'] . 'cron.d/cron_' . ep_safe_name($vhost) . '.xml';
 	}
 
 	private function winadd($name, $vh, $cron)

@@ -34,8 +34,8 @@ class DaControl extends Control
 
 	public function CMD_LOGIN()
 	{
-		session_start();
-		$user = apicall('vhost', 'checkPassword', array($_REQUEST['username'], $_REQUEST['password']));
+		ep_session_start();
+		$user = apicall('vhost', 'checkPassword', array(ep_request('username'), ep_request('password')));
 
 		if (!$user) {
 			header('Content-Type: text/html; charset=utf-8');
@@ -44,6 +44,7 @@ class DaControl extends Control
 
 		registerRole('vhost', $user['name']);
 		$_SESSION['login_from'] = 'vhost';
+		session_regenerate_id(true);
 		header('Location: /vhost/');
 		exit();
 	}
@@ -174,7 +175,10 @@ class DaControl extends Control
 			exit('skey cann\'t be empty');
 		}
 
-		if (trim($_SERVER['AUTH_PASSWORD']) == $skey || trim($_SERVER['PHP_AUTH_PW']) == $skey) {
+		$auth_password = isset($_SERVER['AUTH_PASSWORD']) ? trim(ep_str($_SERVER['AUTH_PASSWORD'])) : '';
+		$php_auth_pw = isset($_SERVER['PHP_AUTH_PW']) ? trim(ep_str($_SERVER['PHP_AUTH_PW'])) : '';
+
+		if (ep_hash_equals($skey, $auth_password) || ep_hash_equals($skey, $php_auth_pw)) {
 			return NULL;
 		}
 

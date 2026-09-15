@@ -15,7 +15,7 @@ class RewritesControl extends Control
 		
 		$i = 0;
 		$paths = array();
-		foreach ($list as $domain) {
+		foreach (ep_iter($list) as $domain) {
 			$path = '/' . trim($domain['value'], '/');
 			if(!in_array($path,$paths)){
 				$paths[$i++] = $path;

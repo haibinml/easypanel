@@ -47,9 +47,9 @@ class Process
 				fclose($pipes[0]);
 			}
 			if ($stdout && is_resource($pipes[1])) {
-				if ($stdout_file == "-") {
+				if ($stdout == "-") {
 					while (true) {
-						$msg = fread($pipes[1]);
+						$msg = fread($pipes[1], 8192);
 						if ($msg === FALSE || strlen($msg) == 0) {
 							break;
 						}
@@ -63,7 +63,7 @@ class Process
 			if ($stderr && is_resource($pipes[2])) {
 				if ($stderr == "-") {
 					while (true) {
-						$msg = fread($pipes[2]);
+						$msg = fread($pipes[2], 8192);
 						if ($msg === FALSE || strlen($msg) == 0) {
 							break;
 						}

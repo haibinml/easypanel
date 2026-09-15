@@ -71,14 +71,15 @@ class VhostproductControl extends Control
 
 	public function ajaxListSubTemplete()
 	{
-		$templete = apicall('nodes', 'listSubTemplete', array($_REQUEST['node'], $_REQUEST['templete']));
+		$templete = apicall('nodes', 'listSubTemplete', array(ep_request('node'), ep_request('templete')));
 		header('Content-Type: text/xml; charset=utf-8');
 		$str = '<?xml version="1.0" encoding="utf-8"?>';
-		$str .= '<result node=\'' . $_REQUEST['node'] . '\'>';
+		$str .= '<result node=\'' . ep_xml_escape(ep_request('node')) . '\'>';
 		$i = 0;
+		$templete = ep_iter($templete);
 
 		while ($i < count($templete)) {
-			$str .= '<subtemplete>' . $templete[$i] . '</subtemplete>';
+			$str .= '<subtemplete>' . ep_xml_escape($templete[$i]) . '</subtemplete>';
 			++$i;
 		}
 
@@ -88,14 +89,15 @@ class VhostproductControl extends Control
 
 	public function ajaxListTemplete()
 	{
-		$templete = apicall('nodes', 'listTemplete', array($_REQUEST['node']));
+		$templete = apicall('nodes', 'listTemplete', array(ep_request('node')));
 		header('Content-Type: text/xml; charset=utf-8');
 		$str = '<?xml version="1.0" encoding="utf-8"?>';
-		$str .= '<result node=\'' . $_REQUEST['node'] . '\'>';
+		$str .= '<result node=\'' . ep_xml_escape(ep_request('node')) . '\'>';
 		$i = 0;
+		$templete = ep_iter($templete);
 
 		while ($i < count($templete)) {
-			$str .= '<templete>' . $templete[$i] . '</templete>';
+			$str .= '<templete>' . ep_xml_escape($templete[$i]) . '</templete>';
 			++$i;
 		}
 
@@ -174,10 +176,10 @@ class VhostproductControl extends Control
 			$url .= '&a=addProductFrom&error=1';
 		}
 		else {
-			$url .= '&a=pageListProduct&success=add&name=' . $_REQUEST['product_name'];
+			$url .= '&a=pageListProduct&success=add&name=' . rawurlencode(ep_request('product_name'));
 		}
 
-		header('Location:' . $url);
+		header('Location:' . ep_safe_header_url($url));
 		exit();
 	}
 
@@ -209,7 +211,7 @@ class VhostproductControl extends Control
 
 		$vh = daocall('vhost', 'getAllVhostByProduct_id', array($_REQUEST['id']));
 
-		if (0 < count($vh)) {
+		if (is_array($vh) && 0 < count($vh)) {
 			$_SESSION['last_error'] = '该产品已有引用，不能删除,引用数 ' . count($vh);
 			header('Location:?c=vhostproduct&a=pageListProduct&error=1');
 			exit();
@@ -221,7 +223,7 @@ class VhostproductControl extends Control
 			exit();
 		}
 
-		header('Location:?c=vhostproduct&a=pageListProduct&success=del&name=' . $productinfo['product_name']);
+		header('Location:' . ep_safe_header_url('?c=vhostproduct&a=pageListProduct&success=del&name=' . rawurlencode($productinfo['product_name'])));
 		exit();
 	}
 

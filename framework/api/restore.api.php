@@ -195,7 +195,7 @@ class RestoreAPI extends API
 		}
 
 		$this->db_host = $G['db_host'] ? $G['db_host'] : 'localhost';
-		$this->pdo = new PDO('mysql:host=localhost;port=' . $this->db_port, $this->db_user, $this->db_passwd);
+		$this->pdo = ep_new_pdo('mysql:host=localhost;port=' . $this->db_port, $this->db_user, $this->db_passwd);
 
 		if (!$this->pdo) {
 			$this->showMsg("connect to mysql failed for restoremysql\n");
@@ -205,7 +205,8 @@ class RestoreAPI extends API
 
 		$result = $this->pdo->query('SHOW VARIABLES');
 
-		foreach ($result as $r) {
+		if ($result) {
+			foreach ($result as $r) {
 			if ($r['Variable_name'] == 'basedir') {
 				$this->mysql_bin_dir = $r['Value'] . '/bin/';
 			}
@@ -215,12 +216,14 @@ class RestoreAPI extends API
 					$this->bin_log_start = 'off';
 				}
 			}
+			}
 		}
 
 		$i = 0;
 
 		while ($i < count($this->restore_dir)) {
 			if ($this->restore_dir[$i] == $this->z7outtmpdirname) {
+				++$i;
 				continue;
 			}
 
@@ -665,13 +668,13 @@ class RestoreAPI extends API
 
 	private function get7zChCmd()
 	{
-		$cmd .= '7z';
+		$cmd = '7z';
 
 		if ($this->os == 'win') {
 			$cmd .= '.exe';
 		}
 
-		if ($setting['backup_passwd']) {
+		if ($this->setting['backup_passwd']) {
 			$cmd .= ' -p' . $this->setting['backup_passwd'] . ' ';
 		}
 

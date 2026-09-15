@@ -10,7 +10,7 @@ class DomainAPI extends API
 			return false;
 		}
 
-		if ($domain['passwd'] != md5($passwd)) {
+		if ($domain['passwd'] != md5(ep_str($passwd))) {
 			return false;
 		}
 

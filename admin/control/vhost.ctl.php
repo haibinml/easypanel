@@ -13,7 +13,7 @@ class VhostControl extends Control
 
 		if ($list) {
 			$product_info = apicall('product', 'getVhostProduct', array($list['product_id']));
-			$list['product_name'] = $product_info['name'];
+			$list['product_name'] = is_array($product_info) && isset($product_info['name']) ? $product_info['name'] : '';
 			$this->_tpl->assign('row', $list);
 			$list = daocall('vhostinfo', 'getDomain', array($list['name']));
 			$this->_tpl->assign('list', $list);
@@ -30,9 +30,10 @@ class VhostControl extends Control
 	public function pageVhost()
 	{
 		$search_key = null;
+		$name = '';
 
 		if ($_REQUEST['name']) {
-			$name = trim($_REQUEST['name']);
+			$name = trim(ep_request('name'));
 
 			if (strchr($name, '.')) {
 				$domain = daocall('vhostinfo', 'findDomain', array($name));
@@ -57,6 +58,7 @@ class VhostControl extends Control
 		$count = 0;
 		$list = daocall('vhost', 'pageVhost', array($search_key, $page, $page_count, &$count));
 		@load_conf('pub:vhostproduct');
+		$list = ep_iter($list);
 		$i = 0;
 
 		while ($i < count($list)) {
@@ -71,7 +73,7 @@ class VhostControl extends Control
 		}
 
 		$products = daocall('product', 'getProducts');
-		$counts = count($products);
+		$counts = is_array($products) ? count($products) : 0;
 		$this->_tpl->assign('count', $count);
 
 		if (is_array($products)) {
@@ -114,7 +116,7 @@ class VhostControl extends Control
 	 */
 	public function del()
 	{
-		$vhost = trim($_REQUEST['name']);
+		$vhost = trim(ep_request('name'));
 		$json['code'] = 400;
 		@apicall('cdn', 'delCdnAccessFile', array($vhost));
 
@@ -135,7 +137,7 @@ class VhostControl extends Control
 	 */
 	public function setStatus()
 	{
-		$vhost = trim($_REQUEST['name']);
+		$vhost = trim(ep_request('name'));
 		$json['code'] = 400;
 
 		if (!$vhost) {
@@ -162,7 +164,7 @@ class VhostControl extends Control
 	 */
 	public function resync()
 	{
-		$vhost = trim($_REQUEST['name']);
+		$vhost = trim(ep_request('name'));
 		$json['code'] = 400;
 
 		if (!$vhost) {
@@ -182,12 +184,17 @@ class VhostControl extends Control
 	 */
 	public function randPassword()
 	{
-		$vhost = $_REQUEST['name'];
+		$vhost = ep_request('name');
 		$passwd = getRandPasswd();
 		$node = daocall('vhost', 'getVhost', array($vhost));
+
+		if (!is_array($node)) {
+			$node = array();
+		}
+
 		$node['node'] = 'localhost';
 
-		if (apicall('vhost', 'changePassword', array($node['node'], $vhost, $passwd))) {
+		if ($vhost !== '' && apicall('vhost', 'changePassword', array($node['node'], $vhost, $passwd))) {
 			exit('成功,新密码: ' . $passwd);
 			return NULL;
 		}
@@ -200,13 +207,18 @@ class VhostControl extends Control
 	 */
 	public function randDbPassword()
 	{
-		$vhost = $_REQUEST['name'];
+		$vhost = ep_request('name');
 		$node = daocall('vhost', 'getVhost', array(
 	$vhost,
 	array('db_quota', 'uid')
 	));
+
+		if (!is_array($node)) {
+			$node = array();
+		}
+
 		$node['node'] = 'localhost';
-		if (!$node && $node['db_quota'] == 0) {
+		if ($vhost === '' || empty($node['db_quota'])) {
 			$msg = '重设数据库密码出错，该产品没有数据库。';
 		}
 		else {
@@ -229,7 +241,7 @@ class VhostControl extends Control
 	 */
 	public function impLogin()
 	{
-		registerRole('vhost', $_REQUEST['name']);
+		registerRole('vhost', ep_request('name'));
 		header('Location: /vhost/');
 		exit();
 	}

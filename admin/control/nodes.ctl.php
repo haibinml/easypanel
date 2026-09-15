@@ -15,8 +15,8 @@ class NodesControl extends Control
 	public function testDnsdun()
 	{
 		$json['code'] = 400;
-		$domain = $_REQUEST['domain'] ? $_REQUEST['domain'] : null;
-		$domainkey = $_REQUEST['domainkey'] ? $_REQUEST['domainkey'] : null;
+		$domain = ep_request('domain') ? ep_request('domain') : null;
+		$domainkey = ep_request('domainkey') ? ep_request('domainkey') : null;
 
 		if (apicall('record', 'test', array($domain, $domainkey))) {
 			$json['code'] = 200;
@@ -69,13 +69,13 @@ class NodesControl extends Control
 	 */
 	public function ajaxCheckNode()
 	{
-		$node = $_REQUEST['node'];
-		$result = apicall('nodes', 'checkNode', array($_REQUEST['node']));
+		$node = ep_request('node');
+		$result = apicall('nodes', 'checkNode', array($node));
 		header('Content-Type: text/xml; charset=utf-8');
 		$str = '<?xml version="1.0" encoding="utf-8"?>';
-		$str .= '<result node=\'' . $_REQUEST['node'] . '\' whm=\'';
-		$str .= $result['whm'];
-		$str .= '\' db=\'' . $result['db'] . '\' sqlsrv=\'' . $result['sqlsrv'] . '\'/>';
+		$str .= '<result node=\'' . ep_xml_escape($node) . '\' whm=\'';
+		$str .= ep_xml_escape(is_array($result) && isset($result['whm']) ? $result['whm'] : '');
+		$str .= '\' db=\'' . ep_xml_escape(is_array($result) && isset($result['db']) ? $result['db'] : '') . '\' sqlsrv=\'' . ep_xml_escape(is_array($result) && isset($result['sqlsrv']) ? $result['sqlsrv'] : '') . '\'/>';
 		return $str;
 	}
 
@@ -114,23 +114,30 @@ class NodesControl extends Control
 
 		$whm = apicall('nodes', 'makeWhm', array($name));
 		$whmCall = new WhmCall('vhost.whm', 'list_dev');
-		$result = $whm->call($whmCall, 10);
+		if ($whm) {
+			$result = $whm->call($whmCall, 10);
 
-		if ($result) {
-			$this->assign('devs', $result->getAll('dev'));
+			if ($result) {
+				$this->assign('devs', $result->getAll('dev'));
+			}
 		}
 
 		$viewdir = dirname(__FILE__) . '/../../vhost/view/';
-		$op = opendir($viewdir);
+		$view_dir = array();
+		$op = @opendir($viewdir);
 
-		while (($dir = readdir($op)) !== false) {
-			if ($dir == '.' || $dir == '..') {
-				continue;
+		if ($op) {
+			while (($dir = readdir($op)) !== false) {
+				if ($dir == '.' || $dir == '..') {
+					continue;
+				}
+
+				if (is_dir($viewdir . $dir)) {
+					$view_dir[] = $dir;
+				}
 			}
 
-			if (is_dir($viewdir . $dir)) {
-				$view_dir[] = $dir;
-			}
+			closedir($op);
 		}
 
 		$view_dir_count = count($view_dir);
@@ -198,11 +205,17 @@ class NodesControl extends Control
 		daocall('setting', 'add', array('dnsdundomainkey', $_REQUEST['dnsdundomainkey']));
 		daocall('setting', 'add', array('cname_host', $_REQUEST['cname_host']));
 		daocall('setting', 'add', array('domain_bind', $_REQUEST['domain_bind']));
-		daocall('setting', 'add', array('default_version', $_REQUEST['default_version']));
-		daocall('setting', 'add', array('phpcli_version', $_REQUEST['phpcli_version']));
-		daocall('setting', 'add', array('file_encoding', $_REQUEST['file_encoding']));
+		daocall('setting', 'add', array('default_version', ep_request('default_version')));
+		$phpcli_version = ep_request('phpcli_version');
 
-		modcall('php', 'php_set_cli_version', [$_REQUEST['phpcli_version']]);
+		if ($phpcli_version !== '' && !preg_match('/^php[0-9]+$/', $phpcli_version)) {
+			$phpcli_version = '';
+		}
+
+		daocall('setting', 'add', array('phpcli_version', $phpcli_version));
+		daocall('setting', 'add', array('file_encoding', ep_request('file_encoding')));
+
+		modcall('php', 'php_set_cli_version', array($phpcli_version));
 
 		if (daocall('setting', 'get', array('kangle_type')) == 'enterprise') {
 			daocall('setting', 'add', array('title', $_REQUEST['title']));

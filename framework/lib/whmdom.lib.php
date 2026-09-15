@@ -172,6 +172,6 @@ class WhmdomClient
 	}
 }
 
-define(WHM_CALL_METHOD, 'GET');
+define('WHM_CALL_METHOD', 'GET');
 
 ?>

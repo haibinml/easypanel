@@ -24,11 +24,15 @@ class CapabilityControl extends Control
 
 	public function capabilityGet()
 	{
+		if (!$this->whm) {
+			exit('error');
+		}
+
 		$whmCall = new WhmCall('core.whm', 'get_load');
 		$whmCall->addParam('vh', getRole('vhost'));
 		$result = $this->whm->call($whmCall);
 
-		if ($result->getCode() != '200') {
+		if (!$result || $result->getCode() != '200') {
 			exit('error');
 		}
 

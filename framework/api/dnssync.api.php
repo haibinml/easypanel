@@ -133,7 +133,7 @@ class DnssyncAPI extends API
 
 	public function syncAllNOdeDns()
 	{
-		$nodes = daocall('slaves', 'slavesGet', array());
+		$nodes = ep_iter(daocall('slaves', 'slavesGet', array()));
 
 		if (count($nodes) <= 0) {
 			return true;
@@ -182,7 +182,7 @@ class DnssyncAPI extends API
 	public function syncAllInit()
 	{
 		$views = daocall('views', 'viewsList', array());
-		$nodes = daocall('slaves', 'slavesGet', array());
+		$nodes = ep_iter(daocall('slaves', 'slavesGet', array()));
 
 		if (count($nodes) <= 0) {
 			return true;

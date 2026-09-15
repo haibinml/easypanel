@@ -13,7 +13,7 @@ class CdnSlaveAPI extends API
 		if ($del || $sync) {
 			daocall('vhost', 'begin');
 
-			foreach ($del as $vh) {
+			foreach (ep_iter($del) as $vh) {
 				$vh_name = $prefix . $vh;
 				$names .= $vh_name . ',';
 				daocall('vhostinfo', 'delAllInfo', array($vh_name));
@@ -21,7 +21,7 @@ class CdnSlaveAPI extends API
 				@unlink($this->get_access_file($nodename, $vh));
 			}
 
-			foreach ($sync as $vh) {
+			foreach (ep_iter($sync) as $vh) {
 				$this->sync_vhost($nodename, $vh, $names);
 			}
 
@@ -40,13 +40,19 @@ class CdnSlaveAPI extends API
 
 	private function sync_vhost($nodename, $vh, &$names)
 	{
+		if (!is_array($vh) || !isset($vh['v']) || !is_array($vh['v'])) {
+			return false;
+		}
+
 		$v = $vh['v'];
 		$vh_name = '@' . $nodename . '_' . $v['name'];
 		$names .= $vh_name . ',';
-		$infos = $vh['info'];
-		$access = $vh['access'];
-		$certificate = $vh['certificate'];
-		$certificate_key = $vh['certificate_key'];
+		$infos = isset($vh['info']) ? $vh['info'] : array();
+		$access = isset($vh['access']) ? $vh['access'] : '';
+		$certificate = isset($vh['certificate']) ? $vh['certificate'] : '';
+		$certificate_key = isset($vh['certificate_key']) ? $vh['certificate_key'] : '';
+		$certificate_file = '';
+		$certificate_key_file = '';
 		$v['uid'] = 'cdn' . $nodename . '_' . $v['uid'];
 		$arr = $v;
 		$arr['name'] = $vh_name;
@@ -84,7 +90,7 @@ class CdnSlaveAPI extends API
 		daocall('vhost', 'insertVhost', array($arr));
 		daocall('vhostinfo', 'delAllInfo', array($vh_name));
 
-		foreach ($infos as $info) {
+		foreach (ep_iter($infos) as $info) {
 			$infovalue = $info['value'];
 			if ($info['type'] == 0 && strncasecmp($infovalue, 'http://', 7) != 0 && strncasecmp($infovalue, 'https://', 8) != 0 && strncasecmp($infovalue, 'server://', 9) != 0) {
 				$infovalue = 'http://' . $ip . ':0/';
@@ -123,8 +129,12 @@ class CdnSlaveAPI extends API
 				fclose($fp);
 			}
 		}
-		if ($vh['certs'] && count($vh['certs'])>0) {
+		if (!empty($vh['certs']) && is_array($vh['certs'])) {
 			foreach($vh['certs'] as $filename=>$filedata){
+				$filename = ep_safe_name(basename(str_replace('\\', '/', $filename)));
+				if ($filename === '') {
+					continue;
+				}
 				$fp = @fopen($this->acess_dir . $filename, 'wb');
 				if ($fp) {
 					@fwrite($fp, base64_decode($filedata));

@@ -243,7 +243,7 @@ class VhostProduct extends Product
 			return true;
 		}
 
-		return @exec(copy($file, $filename));
+		return @copy($file, $filename);
 	}
 
 	public function checkParam($username, $suser)

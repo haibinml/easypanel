@@ -40,9 +40,14 @@ class ProductControl extends Control
 
 		if ($edit) {
 			$vhost = daocall('vhost', 'getVhost', array($_REQUEST['name'], null));
+
+			if (!is_array($vhost)) {
+				$vhost = array();
+			}
+
 			$this->assign('vhost', $vhost);
 			$this->assign('edit', 1);
-			$product_id = $vhost['product_id'];
+			$product_id = isset($vhost['product_id']) ? $vhost['product_id'] : 0;
 		}
 		else {
 			$product_id = $_REQUEST['product_id'];
@@ -64,9 +69,10 @@ class ProductControl extends Control
 	public function check()
 	{
 		$product_type = $_REQUEST['product_type'];
-		$name = trim($_REQUEST['name']);
+		$name = trim(ep_request('name'));
 		$this->_tpl->assign('product_type', $product_type);
 		$this->_tpl->assign('param', $name);
+		$result = null;
 
 		switch ($product_type) {
 		case 'vhost':
@@ -90,7 +96,7 @@ class ProductControl extends Control
 	public function sell()
 	{
 		$_REQUEST['double_name_as_error'] = 1;
-		$name = trim($_REQUEST['name']);
+		$name = trim(ep_request('name'));
 
 		if (!$name) {
 			return $this->displayMyMsg('账号不能为空');
@@ -176,9 +182,9 @@ class ProductControl extends Control
 		set_time_limit(0);
 		$product_id = intval($_REQUEST['product_id']);
 		$product_info = daocall('product', 'getProduct', array($product_id));
-		$vhosts = daocall('vhost', 'getAllVhostByProduct_id', array($product_id));
+		$vhosts = ep_iter(daocall('vhost', 'getAllVhostByProduct_id', array($product_id)));
 
-		if (count($vhosts) < 0) {
+		if (count($vhosts) <= 0) {
 			exit('该产品没有被使用,不需要重建');
 		}
 

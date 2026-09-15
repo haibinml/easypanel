@@ -8,7 +8,7 @@ class Flow
 		$file = $GLOBALS['safe_dir'] . $db;
 		$exsit = file_exists($file);
 		$dsn = 'sqlite:' . $file;
-		$this->pdo = new PDO($dsn);
+		$this->pdo = ep_new_pdo($dsn);
 
 		if (!$exsit) {
 			$this->init();
@@ -51,7 +51,7 @@ class Flow
 		}
 
 		$sql .= ' = ' . $t . ' order by flow desc limit 0';
-		$sql .= ' ,' . $count;
+		$sql .= ' ,' . intval($count);
 
 		if (!is_object($this->pdo)) {
 			return false;
@@ -72,7 +72,7 @@ class Flow
 	 */
 	public function getFlow($table, $name, $t)
 	{
-		$sql = 'SELECT flow as flow,flow_cache as flow_cache , t as t  from ' . $table . ' WHERE name=\'' . $name . '\'';
+		$sql = 'SELECT flow as flow,flow_cache as flow_cache , t as t  from ' . $table . ' WHERE name=\'' . str_replace('\'', '\'\'', ep_str($name)) . '\'';
 
 		switch ($table) {
 		case 'flow_day':
@@ -91,6 +91,8 @@ class Flow
 			break;
 		}
 
+		$result = false;
+
 		if (is_object($this->pdo)) {
 			$result = $this->pdo->query($sql);
 		}
@@ -108,7 +110,9 @@ class Flow
 	 */
 	public function getMonthFlow($name, $t)
 	{
-		$sql = 'select flow/1024 as flow ,flow_cache/1024 as flow_cache,name as name from flow_month where name=\'' . $name . '\' AND t=' . $t;
+		$sql = 'select flow/1024 as flow ,flow_cache/1024 as flow_cache,name as name from flow_month where name=\'' . str_replace('\'', '\'\'', ep_str($name)) . '\' AND t=' . intval($t);
+
+		$result = false;
 
 		if (is_object($this->pdo)) {
 			$result = $this->pdo->query($sql);
@@ -129,7 +133,9 @@ class Flow
 	 */
 	public function getListflow($table, $t)
 	{
-		$sql = 'select flow/1024 as flow ,flow_cache/1024 as flow_cache,name as name from ' . $table . ' where t=' . $t;
+		$sql = 'select flow/1024 as flow ,flow_cache/1024 as flow_cache,name as name from ' . $table . ' where t=' . intval($t);
+
+		$result = false;
 
 		if (is_object($this->pdo)) {
 			$result = $this->pdo->query($sql);
@@ -151,11 +157,11 @@ class Flow
 	 */
 	public function addFlow($table, $name, $t, $flow, $flow_cache = 0)
 	{
-		$sql = 'UPDATE ' . $table . ' SET flow=flow+' . $flow . ',flow_cache=flow_cache+' . $flow_cache . ' WHERE name=\'' . $name . '\' AND t=\'' . $t . '\'';
+		$sql = 'UPDATE ' . $table . ' SET flow=flow+' . intval($flow) . ',flow_cache=flow_cache+' . intval($flow_cache) . ' WHERE name=\'' . str_replace('\'', '\'\'', ep_str($name)) . '\' AND t=\'' . str_replace('\'', '\'\'', ep_str($t)) . '\'';
 		$result = $this->pdo->exec($sql);
 
 		if (!$result) {
-			$sql = 'INSERT INTO ' . $table . ' (name,t,flow,flow_cache) VALUES (\'' . $name . '\',\'' . $t . '\',' . $flow . ',' . $flow_cache . ')';
+			$sql = 'INSERT INTO ' . $table . ' (name,t,flow,flow_cache) VALUES (\'' . str_replace('\'', '\'\'', ep_str($name)) . '\',\'' . str_replace('\'', '\'\'', ep_str($t)) . '\',' . intval($flow) . ',' . intval($flow_cache) . ')';
 			return $this->pdo->exec($sql);
 		}
 

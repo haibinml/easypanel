@@ -19,7 +19,7 @@ class VhostDAO extends DAO
 	public function listVhostNotcdn($prefix = '@', $fields = null)
 	{
 		$len = strlen($prefix);
-		$where = 'substr(`name`,0,' . $len . ')!=\'' . $prefix . '\'';
+		$where = 'substr(`name`,0,' . intval($len) . ')!=\'' . $this->daddslashes($prefix) . '\'';
 		return $this->select($fields, $where);
 	}
 
@@ -30,7 +30,7 @@ class VhostDAO extends DAO
 	public function delNodeCdn($prefix)
 	{
 		$len = strlen($prefix)+1;
-		$sql = 'delete from ' . $this->_TABLE . ' where substr(`name`,0,' . $len . ')=\'' . $prefix . '\'';
+		$sql = 'delete from ' . $this->_TABLE . ' where substr(`name`,0,' . intval($len) . ')=\'' . $this->daddslashes($prefix) . '\'';
 		return $this->executex($sql);
 	}
 
@@ -42,7 +42,7 @@ class VhostDAO extends DAO
 	 */
 	public function updateSyncseq($name)
 	{
-		$sql = 'update ' . $this->_TABLE . ' set `sync_seq`=`sync_seq`+1 where name=\'' . $name . '\'';
+		$sql = 'update ' . $this->_TABLE . ' set `sync_seq`=`sync_seq`+1 where name=\'' . $this->daddslashes($name) . '\'';
 		return $this->executex($sql);
 	}
 
@@ -59,7 +59,7 @@ class VhostDAO extends DAO
 
 	public function setPasswd($name, $passwd)
 	{
-		$sql = 'UPDATE vhost SET `passwd`=\'' . $passwd . '\' where `name`=\'' . $name . '\'';
+		$sql = 'UPDATE vhost SET `passwd`=\'' . $this->daddslashes($passwd) . '\' where `name`=\'' . $this->daddslashes($name) . '\'';
 		return $this->executex($sql);
 	}
 
@@ -95,13 +95,16 @@ class VhostDAO extends DAO
 	 */
 	public function getListvhost($type = null)
 	{
+		$fields = null;
+		$where = '';
+
 		if ($type == 'db_use') {
-			$fieids = array('name', 'db_name', 'db_quota', 'status');
+			$fields = array('name', 'db_name', 'db_quota', 'status');
 			$where = 'db_quota > 0';
 		}
 
 		if ($type == 'flow_limit') {
-			$fieids = array('name', 'flow_limit', 'status');
+			$fields = array('name', 'flow_limit', 'status');
 			$where = 'flow_limit > 0';
 		}
 
@@ -116,16 +119,16 @@ class VhostDAO extends DAO
 	public function addMonth($name, $month)
 	{
 		if($month == 0){
-			$sql = 'UPDATE vhost SET `expire_time2`=0 WHERE `name`=\'' . $name . '\'';
+			$sql = 'UPDATE vhost SET `expire_time2`=0 WHERE `name`=\'' . $this->daddslashes($name) . '\'';
 		}else{
 		$expire_time = $this->getExpireTime($month);
 		$result = $this->select(array('name', 'expire_time2'), $this->getFieldValue2('name', $name), 'row');
 
 		if (0 < $result['expire_time2']) {
-			$sql = 'UPDATE vhost SET `expire_time2`=`expire_time2`+' . $expire_time . ' WHERE `name`=\'' . $name . '\'';
+			$sql = 'UPDATE vhost SET `expire_time2`=`expire_time2`+' . $expire_time . ' WHERE `name`=\'' . $this->daddslashes($name) . '\'';
 		}
 		else {
-			$sql = 'UPDATE vhost SET `expire_time2`=' . (time() + $expire_time) . ' WHERE `name`=\'' . $name . '\'';
+			$sql = 'UPDATE vhost SET `expire_time2`=' . (time() + $expire_time) . ' WHERE `name`=\'' . $this->daddslashes($name) . '\'';
 		}
 		}
 
@@ -146,9 +149,9 @@ class VhostDAO extends DAO
 			if (is_array($search)) {
 				$name = $search['name'];
 				if (is_numeric($name)) {
-					$where = 'name like \'%' . $search['name'] . '%\' or uid=' . $search['name'] . '';
+					$where = 'name like \'%' . $this->daddslashes($search['name']) . '%\' or uid=' . intval($search['name']) . '';
 				} else {
-					$where = 'name like \'%' . $search['name'] . '%\'';
+					$where = 'name like \'%' . $this->daddslashes($search['name']) . '%\'';
 				}
 			}
 			else {
@@ -302,7 +305,7 @@ class VhostDAO extends DAO
 
 		if ($prefix != null) {
 			$len = strlen($prefix);
-			$where = ' substr(`name`,0,' . $len . ')=\'' . $prefix . '\'';
+			$where = ' substr(`name`,0,' . intval($len) . ')=\'' . $this->daddslashes($prefix) . '\'';
 		}
 
 		return $this->select($fields, $where, 'rows');

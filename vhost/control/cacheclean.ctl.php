@@ -5,7 +5,8 @@ class CachecleanControl extends Control
 	public function cachecleanFrom()
 	{
 		$list = daocall('vhostinfo', 'getDomain', array(getRole('vhost')));
-		foreach ($list as $domain) {
+		$li = array();
+		foreach (ep_iter($list) as $domain) {
 			if(strpos($domain['name'],'.') && strpos($domain['name'],'*')===false)
 				$li[] = $domain['name'];
 		}

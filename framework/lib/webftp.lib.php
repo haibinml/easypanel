@@ -24,7 +24,7 @@ class FileAccess
 		}
 
 		$dsn = 'sqlite:' . $db;
-		$this->pdo = new PDO($dsn);
+		$this->pdo = ep_new_pdo($dsn);
 
 		if (!$exsit) {
 			$this->init();
@@ -56,7 +56,7 @@ class FileAccess
 	public function add($file, $is_dir, $action)
 	{
 		$this->del($file);
-		$sql = 'INSERT INTO file_access (file,is_dir,action) VALUES (\'' . $file . '\',' . intval($is_dir) . ',\'' . $action . '\')';
+		$sql = 'INSERT INTO file_access (file,is_dir,action) VALUES (\'' . $this->sqlQuote($file) . '\',' . intval($is_dir) . ',\'' . $this->sqlQuote($action) . '\')';
 		$result = $this->pdo->exec($sql);
 		$this->sync_access($is_dir, $action);
 		return $result;
@@ -64,7 +64,7 @@ class FileAccess
 
 	public function del($file)
 	{
-		$sql = 'SELECT is_dir,action FROM file_access WHERE file=\'' . $file . '\'';
+		$sql = 'SELECT is_dir,action FROM file_access WHERE file=\'' . $this->sqlQuote($file) . '\'';
 		$result = $this->pdo->query($sql);
 
 		if (!$result) {
@@ -77,7 +77,7 @@ class FileAccess
 			return false;
 		}
 
-		$sql = 'DELETE FROM file_access WHERE file=\'' . $file . '\'';
+		$sql = 'DELETE FROM file_access WHERE file=\'' . $this->sqlQuote($file) . '\'';
 		$result = $this->pdo->exec($sql);
 		$this->sync_access($rs['is_dir'], $rs['action']);
 		return $result;
@@ -85,7 +85,7 @@ class FileAccess
 
 	public function sync_access($is_dir, $action)
 	{
-		$sql = 'SELECT file FROM file_access WHERE is_dir=' . $is_dir . ' AND action=\'' . $action . '\'';
+		$sql = 'SELECT file FROM file_access WHERE is_dir=' . intval($is_dir) . ' AND action=\'' . $this->sqlQuote($action) . '\'';
 		$result = $this->pdo->query($sql);
 		$chain_name = $action . $is_dir;
 		$access = new Access($this->vhost, 'response');
@@ -97,7 +97,7 @@ class FileAccess
 
 		$rows = $result->fetchAll(PDO::FETCH_ASSOC);
 
-		if (count($rows) == 0) {
+		if (!is_array($rows) || count($rows) == 0) {
 			$access->delChainByName(FILE_ACCESS_TABLE, $chain_name);
 			return true;
 		}
@@ -188,6 +188,11 @@ class FileAccess
 		$access->addTable(FILE_ACCESS_TABLE);
 		$access->emptyTable(FILE_ACCESS_TABLE);
 		$access->editChain('POSTMAP', array('action' => 'table:' . FILE_ACCESS_TABLE, 'name' => 'file_access'));
+	}
+
+	private function sqlQuote($value)
+	{
+		return str_replace('\'', '\'\'', ep_str($value));
 	}
 }
 
@@ -386,6 +391,7 @@ function splitdir($dir)
 
 function unescape($str)
 {
+	$str = ep_str($str);
 	preg_match_all('/%u.{4}|&#x.{4};|&#\\d+;|.+/sU', $str, $r);
 	$ar = $r[0];
 
@@ -450,7 +456,7 @@ function my_copy_upfile($src, $dest)
 	while (true) {
 		$str = fread($fp, 8192);
 
-		if ($str == FALSE) {
+		if ($str === false || $str === '') {
 			break;
 		}
 
@@ -464,8 +470,8 @@ function my_copy_upfile($src, $dest)
 	return true;
 }
 
-define(S_IFDIR, 16384);
-define(S_IWRITE, 512);
-define(FILE_ACCESS_TABLE, '!file_access');
+define('S_IFDIR', 16384);
+define('S_IWRITE', 512);
+define('FILE_ACCESS_TABLE', '!file_access');
 
 ?>

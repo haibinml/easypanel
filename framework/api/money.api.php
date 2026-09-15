@@ -28,6 +28,11 @@ class MoneyAPI extends API
 	{
 		global $default_db;
 		$moneyin = daocall('moneyin', 'get', array($id));
+
+		if (!is_array($moneyin)) {
+			return false;
+		}
+
 		$user = daocall('user', 'getUser', array($moneyin['username']));
 
 		if (!$default_db->beginTransaction()) {

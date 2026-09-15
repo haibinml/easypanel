@@ -28,6 +28,7 @@ class InstallAPI extends API
 
 		while ($i < count($files)) {
 			if (strncmp($files[$i], '-- ', 3) == 0) {
+				++$i;
 				continue;
 			}
 
@@ -50,6 +51,11 @@ class InstallAPI extends API
 	public function getInstallVersion()
 	{
 		$line = @file($GLOBALS['lock_file']);
+
+		if (!$line || !isset($line[0])) {
+			return false;
+		}
+
 		return trim($line[0]);
 	}
 }

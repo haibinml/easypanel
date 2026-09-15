@@ -44,11 +44,12 @@ class Dnsdun
 		$obj->init();
 		$obj->addParam(CURLOPT_POSTFIELDS, $param);
 		$ret = $obj->call();
-		if (is_array($ret) && $ret['status']['code'] == '1') {
+		if (is_array($ret) && isset($ret['status']['code']) && $ret['status']['code'] == '1') {
 			return $ret['records'];
 		}
 
-		setLastError($ret['status']['message'] . ' ' . $obj->getError());
+		$msg = (is_array($ret) && isset($ret['status']['message'])) ? $ret['status']['message'] : '';
+		setLastError($msg . ' ' . $obj->getError());
 		return false;
 	}
 
@@ -80,11 +81,12 @@ class Dnsdun
 		$obj->init();
 		$obj->addParam(CURLOPT_POSTFIELDS, $param);
 		$ret = $obj->call();
-		if (is_array($ret) && $ret['status']['code'] == '1') {
+		if (is_array($ret) && isset($ret['status']['code']) && $ret['status']['code'] == '1') {
 			return $ret['record']['id'];
 		}
 
-		setLastError($ret['status']['message'] . ' ' . $obj->getError());
+		$msg = (is_array($ret) && isset($ret['status']['message'])) ? $ret['status']['message'] : '';
+		setLastError($msg . ' ' . $obj->getError());
 		return false;
 	}
 
@@ -100,11 +102,12 @@ class Dnsdun
 		$obj->init();
 		$obj->addParam(CURLOPT_POSTFIELDS, $param);
 		$ret = $obj->call();
-		if (is_array($ret) && $ret['status']['code'] == '1') {
+		if (is_array($ret) && isset($ret['status']['code']) && $ret['status']['code'] == '1') {
 			return $ret['record']['id'];
 		}
 
-		setLastError($ret['status']['message'] . ' ' . $obj->getError());
+		$msg = (is_array($ret) && isset($ret['status']['message'])) ? $ret['status']['message'] : '';
+		setLastError($msg . ' ' . $obj->getError());
 		return false;
 	}
 
@@ -142,11 +145,12 @@ class Dnsdun
 		$obj->init();
 		$obj->addParam(CURLOPT_POSTFIELDS, $param);
 		$ret = $obj->call();
-		if (is_array($ret) && $ret['status']['code'] == '1') {
+		if (is_array($ret) && isset($ret['status']['code']) && $ret['status']['code'] == '1') {
 			return true;
 		}
 
-		setLastError($ret['status']['message'] . ' ' . $obj->getError());
+		$msg = (is_array($ret) && isset($ret['status']['message'])) ? $ret['status']['message'] : '';
+		setLastError($msg . ' ' . $obj->getError());
 		return false;
 	}
 }

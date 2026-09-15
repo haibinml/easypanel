@@ -9,8 +9,9 @@ class FlowControl extends Control
 	public function viewFlow()
 	{
 		$name = getRole('vhost');
+		$t_req = ep_request('t');
 
-		switch ($_REQUEST['t']) {
+		switch ($t_req) {
 		case 'day':
 			$t = date('YmdH', time() - 86400);
 			$table = 'flow_hour';
@@ -34,6 +35,10 @@ class FlowControl extends Control
 
 		default:
 			echo 'No this time for flow';
+			$table = '';
+			$t = '';
+			$date = '';
+			$datename = '';
 			break;
 		}
 
@@ -50,7 +55,7 @@ class FlowControl extends Control
 				$flow_cache .= $f['flow_cache'] . ',';
 				$cate .= '\'' . intval(substr($f['t'], 0 - 2));
 
-				switch ($_REQUEST['t']) {
+				switch ($t_req) {
 				case 'day':
 					$cate .= ':00';
 					break;

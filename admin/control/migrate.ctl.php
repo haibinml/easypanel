@@ -15,26 +15,30 @@ class MigrateControl extends Control
 		parent::__construct();
 		$setting = daocall('setting', 'getAll', array());
 
-		if ($_SESSION['migrate_host'] != '') {
+		if (!is_array($setting)) {
+			$setting = array();
+		}
+
+		if (isset($_SESSION['migrate_host']) && $_SESSION['migrate_host'] != '') {
 			$this->migrate_host = $setting['migrate_host'] = $_SESSION['migrate_host'];
 		}
 
-		if ($_SESSION['migrate_port'] != '') {
+		if (isset($_SESSION['migrate_port']) && $_SESSION['migrate_port'] != '') {
 			$this->migrate_port = $setting['migrate_port'] = $_SESSION['migrate_port'];
 		}else{
 			$_SESSION['migrate_port'] = 3312;
 		}
 
-		if ($_SESSION['migrate_skey'] != '') {
+		if (isset($_SESSION['migrate_skey']) && $_SESSION['migrate_skey'] != '') {
 			$this->migrate_skey = $setting['migrate_skey'] = $_SESSION['migrate_skey'];
 		}
 
-		if ($_SESSION['migrate_change_uid'] != '') {
+		if (isset($_SESSION['migrate_change_uid']) && $_SESSION['migrate_change_uid'] != '') {
 			$setting['migrate_change_uid'] = $_SESSION['migrate_change_uid'];
 		}
 
-		$setting['migrate_prefix'] = $_SESSION['migrate_prefix'];
-		$this->migrate_nolog = intval($_SESSION['migrate_nolog']);
+		$setting['migrate_prefix'] = isset($_SESSION['migrate_prefix']) ? $_SESSION['migrate_prefix'] : '';
+		$this->migrate_nolog = intval(isset($_SESSION['migrate_nolog']) ? $_SESSION['migrate_nolog'] : 0);
 		$this->setting = $setting;
 	}
 
@@ -66,8 +70,8 @@ class MigrateControl extends Control
 
 	public function add()
 	{
-		session_start();
-		$migrate_host = trim($_REQUEST['migrate_host']);
+		ep_session_start();
+		$migrate_host = trim(ep_request('migrate_host'));
 		$migrate_port = intval($_REQUEST['migrate_port']);
 
 		if (!$migrate_host) {
@@ -77,7 +81,7 @@ class MigrateControl extends Control
 
 		$_SESSION['migrate_host'] = $migrate_host;
 		$_SESSION['migrate_port'] = $migrate_port;
-		$migrate_skey = trim($_REQUEST['migrate_skey']);
+		$migrate_skey = trim(ep_request('migrate_skey'));
 
 		if (!$migrate_skey) {
 			exit('目标服务器安全码未设置');
@@ -100,7 +104,7 @@ class MigrateControl extends Control
 
 	public function migrate()
 	{
-		$vh = trim($_REQUEST['vh']);
+		$vh = ep_safe_name(trim(ep_request('vh')));
 
 		if (!$vh) {
 			$this->migrate_result(500, '账号不能为空');
@@ -128,6 +132,12 @@ class MigrateControl extends Control
 
 	public function migrateWebRestore($vh = null)
 	{
+		$vh = ep_safe_name($vh);
+
+		if ($vh === '') {
+			$this->migrate_result(500, '账号不能为空');
+		}
+
 		$vh_info = daocall('vhost', 'getVhost', array($this->setting['migrate_prefix'] . $vh));
 
 		if (!$vh_info) {
@@ -147,6 +157,12 @@ class MigrateControl extends Control
 
 	public function migrateSqlRestore($vh = null)
 	{
+		$vh = ep_safe_name($vh);
+
+		if ($vh === '') {
+			$this->migrate_result(500, '账号不能为空');
+		}
+
 		$G = $GLOBALS['node_cfg']['localhost'];
 		if (!$G['db_passwd'] || !$G['db_user']) {
 			$this->migrate_result(500, '数据库账号和密码错误');
@@ -184,6 +200,12 @@ class MigrateControl extends Control
 
 	private function migrateWget($vh, $file_ext)
 	{
+		$vh = ep_safe_name($vh);
+
+		if ($vh === '') {
+			$this->migrate_result(500, '账号不能为空');
+		}
+
 		load_lib('pub:whm');
 		srand((double) microtime() * 1000000);
 		$call = new WhmCall('api/', 'migrate_down');
@@ -248,6 +270,10 @@ class MigrateControl extends Control
 
 		$whmCall = new WhmCall('core.whm', 'list_gtvh');
 		$result = $whm->call($whmCall);
+
+		if (!$result) {
+			$this->migrate_result(500, '获取模板失败');
+		}
 		$templete_name = (array) $result->getAll('name');
 		$templete_check = false;
 
@@ -296,6 +322,11 @@ class MigrateControl extends Control
 		unset($result);
 		unset($code);
 		$result = $this->callWhm('migrate_hello_vh_web', $arr);
+
+		if ($result === false) {
+			$this->migrate_result(500, 'shell返回错误');
+		}
+
 		$code = $result->getCode();
 		if ($code != 200 && $code != 201) {
 			$this->migrate_result(500, 'shell返回错误');
@@ -306,7 +337,12 @@ class MigrateControl extends Control
 
 	public function migrateSql($vh = null)
 	{
-		$arr['vh'] = $vh = $_REQUEST['vh'];
+		if ($vh === null || $vh === '') {
+			$vh = trim(ep_request('vh'));
+		}
+
+		$vh = ep_safe_name($vh);
+		$arr['vh'] = $vh;
 		$vh_info = daocall('vhost', 'getVhost', array($this->setting['migrate_prefix'] . $vh));
 
 		if (!$vh_info) {
@@ -318,6 +354,11 @@ class MigrateControl extends Control
 		}
 
 		$result = $this->callWhm('migrate_hello_vh_sql', $arr);
+
+		if ($result === false) {
+			$this->migrate_result(500, 'shell返回错误');
+		}
+
 		$code = $result->getCode();
 		if ($code != 200 && $code != 201) {
 			$this->migrate_result(500, 'shell返回错误');
@@ -328,8 +369,8 @@ class MigrateControl extends Control
 
 	public function whmQuery()
 	{
-		$arr['session'] = $session = trim($_REQUEST['session']);
-		$arr['vh'] = $vh = trim($_REQUEST['vh']);
+		$arr['session'] = $session = trim(ep_request('session'));
+		$arr['vh'] = $vh = ep_safe_name(trim(ep_request('vh')));
 		$step = $_REQUEST['step'];
 		if ($step == 1 || $step == 2 || $step == 7) {
 			$result = $this->callWhm('migrate_query', $arr);
@@ -353,6 +394,11 @@ class MigrateControl extends Control
 	private function callWhm($callName, $arr = null)
 	{
 		$whm = apicall('nodes', 'makeEpanelWhm', array($this->migrate_host, $this->migrate_port, $this->migrate_skey));
+
+		if (!$whm) {
+			return false;
+		}
+
 		$whmCall = new WhmCall('api/', $callName);
 
 		if ($arr) {
@@ -379,6 +425,12 @@ class MigrateControl extends Control
 
 	private function migrateDelFile($vh = null)
 	{
+		$vh = ep_safe_name($vh);
+
+		if ($vh === '') {
+			return false;
+		}
+
 		$vh_info = daocall('vhost', 'getVhost', array($this->setting['migrate_prefix'] . $vh));
 
 		if (!$vh_info) {
@@ -392,11 +444,14 @@ class MigrateControl extends Control
 	public function migrateProductFrom()
 	{
 		$result = $this->callWhm('migrate_list_product');
+		$p = array();
 		if ($result !== false && $result != 204) {
 			$products = json_decode(base64_decode($result->get('products')));
 
-			foreach ($products as $product) {
-				$p[] = (array) $product;
+			if (is_array($products) || is_object($products)) {
+				foreach ($products as $product) {
+					$p[] = (array) $product;
+				}
 			}
 
 			$this->_tpl->assign('products', $p);
@@ -407,7 +462,7 @@ class MigrateControl extends Control
 
 	public function migrateProduct()
 	{
-		$arr['id'] = trim($_REQUEST['id']);
+		$arr['id'] = trim(ep_request('id'));
 
 		if (!$arr['id']) {
 			$this->migrate_result(500, '产品ID不能为空');

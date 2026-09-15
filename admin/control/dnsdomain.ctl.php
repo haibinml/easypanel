@@ -12,7 +12,7 @@ class DnsdomainControl extends Control
 		$json['code'] = 400;
 		$arr['name'] = trim($_REQUEST['domain']);
 
-		if (!preg_match('/^[0-9a-zA-Z][0-9a-zA-Z_-.]+?[.][a-z0-9]{1,5}$/', $arr['name'])) {
+		if (!preg_match('/^[0-9a-zA-Z][0-9a-zA-Z_.-]+?[.][a-z0-9]{1,5}$/', $arr['name'])) {
 			$json['msg'] = '域名不合法';
 			exit(json_encode($json));
 		}

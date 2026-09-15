@@ -35,7 +35,7 @@ class DomainsDAO extends DAO
 		$where = '';
 		$type = 'rows';
 
-		if ($arr['name']) {
+		if (is_array($arr) && !empty($arr['name'])) {
 			$where = $this->getFieldValue2('name', $arr['name']);
 			$type = 'row';
 		}
@@ -52,12 +52,13 @@ class DomainsDAO extends DAO
 		}
 
 		$where = null;
+		$desc = false;
 
-		if ($where_arr['server']) {
+		if (is_array($where_arr) && !empty($where_arr['server'])) {
 			$where = $this->getFieldValue2('server', $where_arr['server']);
 		}
 
-		if ($where_arr['name']) {
+		if (is_array($where_arr) && !empty($where_arr['name'])) {
 			$where = $this->getFieldValue2('name', $where_arr['name']);
 		}
 

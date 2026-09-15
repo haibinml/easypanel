@@ -5,12 +5,135 @@ function get_number_version()
 	return intval($versions[0] * 10000 + $versions[1] * 100 + $versions[2]);
 }
 
+function ep_str($value, $default = '')
+{
+	if (is_array($value)) {
+		return $default;
+	}
+
+	if ($value === null) {
+		return $default;
+	}
+
+	if (is_object($value) && !method_exists($value, '__toString')) {
+		return $default;
+	}
+
+	return (string) $value;
+}
+
+function ep_iter($value)
+{
+	if (is_array($value)) {
+		return $value;
+	}
+
+	if ($value instanceof Traversable) {
+		return iterator_to_array($value);
+	}
+
+	if (is_object($value)) {
+		return get_object_vars($value);
+	}
+
+	return array();
+}
+
+function ep_pdo_options($extra = array())
+{
+	$options = array(PDO::ATTR_ERRMODE => PDO::ERRMODE_SILENT);
+
+	if (is_array($extra)) {
+		foreach ($extra as $k => $v) {
+			$options[$k] = $v;
+		}
+	}
+
+	return $options;
+}
+
+function ep_new_pdo($dsn, $username = null, $password = null, $options = array())
+{
+	return new PDO($dsn, $username, $password, ep_pdo_options($options));
+}
+
+function ep_hash_equals($known, $user)
+{
+	$known = ep_str($known);
+	$user = ep_str($user);
+
+	if (function_exists('hash_equals')) {
+		return hash_equals($known, $user);
+	}
+
+	return $known === $user;
+}
+
+function ep_xml_escape($value)
+{
+	return htmlspecialchars(ep_str($value), ENT_QUOTES, 'UTF-8');
+}
+
+function ep_xml_tag($name, $fallback = 'item')
+{
+	$name = ep_str($name);
+
+	if (!preg_match('/^[A-Za-z_][A-Za-z0-9_.-]*$/', $name)) {
+		return $fallback;
+	}
+
+	return $name;
+}
+
+function ep_safe_header_url($url)
+{
+	return str_replace(array("\r", "\n", "\0"), '', ep_str($url));
+}
+
+function ep_request($key, $default = '')
+{
+	if (!isset($_REQUEST[$key])) {
+		return $default;
+	}
+
+	return ep_str($_REQUEST[$key], $default);
+}
+
+function ep_safe_name($value, $default = '')
+{
+	$value = ep_str($value, $default);
+	if ($value === '' || $value === '.' || $value === '..') {
+		return $default;
+	}
+
+	if (strpos($value, '/') !== false || strpos($value, '\\') !== false || strpos($value, "\0") !== false) {
+		return $default;
+	}
+
+	return $value;
+}
+
+function ep_js_str($value)
+{
+	return strtr(ep_str($value), array('\\' => '\\\\', '\'' => '\\\'', '"' => '\\"', "\r" => '', "\n" => '', '</' => '<\\/'));
+}
+
+function ep_session_start()
+{
+	if (function_exists('session_status') && session_status() === PHP_SESSION_ACTIVE) {
+		return true;
+	}
+
+	return @session_start();
+}
+
 function is_mobile_request()
 {
 	$_SERVER['ALL_HTTP'] = isset($_SERVER['ALL_HTTP']) ? $_SERVER['ALL_HTTP'] : '';
+	$http_user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
 	$mobile_browser = 0;
 
-	if (preg_match('/(up.browser|up.link|mmp|symbian|smartphone|midp|wap|phone|iphone|ipad|ipod|android|xoom)/i', strtolower($_SERVER['HTTP_USER_AGENT']))) {
+	if (preg_match('/(up.browser|up.link|mmp|symbian|smartphone|midp|wap|phone|iphone|ipad|ipod|android|xoom)/i', strtolower($http_user_agent))) {
 		++$mobile_browser;
 	}
 
@@ -26,7 +149,7 @@ function is_mobile_request()
 		++$mobile_browser;
 	}
 
-	$mobile_ua = strtolower(substr($_SERVER['HTTP_USER_AGENT'], 0, 4));
+	$mobile_ua = strtolower(substr($http_user_agent, 0, 4));
 	$mobile_agents = array('w3c ', 'acs-', 'alav', 'alca', 'amoi', 'audi', 'avan', 'benq', 'bird', 'blac', 'blaz', 'brew', 'cell', 'cldc', 'cmd-', 'dang', 'doco', 'eric', 'hipt', 'inno', 'ipaq', 'java', 'jigs', 'kddi', 'keji', 'leno', 'lg-c', 'lg-d', 'lg-g', 'lge-', 'maui', 'maxo', 'midp', 'mits', 'mmef', 'mobi', 'mot-', 'moto', 'mwbp', 'nec-', 'newt', 'noki', 'oper', 'palm', 'pana', 'pant', 'phil', 'play', 'port', 'prox', 'qwap', 'sage', 'sams', 'sany', 'sch-', 'sec-', 'send', 'seri', 'sgh-', 'shar', 'sie-', 'siem', 'smal', 'smar', 'sony', 'sph-', 'symb', 't-mo', 'teli', 'tim-', 'tosh', 'tsm-', 'upg1', 'upsi', 'vk-v', 'voda', 'wap-', 'wapa', 'wapi', 'wapp', 'wapr', 'webc', 'winw', 'winw', 'xda', 'xda-');
 
 	if (in_array($mobile_ua, $mobile_agents)) {
@@ -37,11 +160,11 @@ function is_mobile_request()
 		++$mobile_browser;
 	}
 
-	if (strpos(strtolower($_SERVER['HTTP_USER_AGENT']), 'windows') !== false) {
+	if (strpos(strtolower($http_user_agent), 'windows') !== false) {
 		$mobile_browser = 0;
 	}
 
-	if (strpos(strtolower($_SERVER['HTTP_USER_AGENT']), 'windows phone') !== false) {
+	if (strpos(strtolower($http_user_agent), 'windows phone') !== false) {
 		++$mobile_browser;
 	}
 
@@ -69,7 +192,11 @@ function loadSetting($tpl)
 
 function filterParam($param, $type = 'param')
 {
-	return trim($param);
+	if (is_array($param) || is_object($param)) {
+		return '';
+	}
+
+	return trim(ep_str($param));
 }
 
 function is_win()
@@ -236,7 +363,11 @@ function load_dao($file)
 
 function load_mod($name)
 {
-	$model_dir = defined(MODULE_DIR) == true ? MODULE_DIR : dirname(dirname(__FILE__)) . '/modules/';
+	if (!preg_match('/^[A-Za-z0-9_.-]+$/', $name)) {
+		exit('incorrect module');
+	}
+
+	$model_dir = defined('MODULE_DIR') == true ? MODULE_DIR : dirname(dirname(__FILE__)) . '/modules/';
 	$model_dir .= '/' . $name;
 
 	if (!file_exists($model_dir)) {
@@ -292,7 +423,7 @@ function getListDir($dir)
 
 function modlist()
 {
-	$model_dir = defined(MODULE_DIR) == true ? MODULE_DIR : dirname(dirname(__FILE__)) . '/modules/';
+	$model_dir = defined('MODULE_DIR') == true ? MODULE_DIR : dirname(dirname(__FILE__)) . '/modules/';
 	return getlistdir($model_dir);
 }
 
@@ -353,12 +484,16 @@ function BaseCall($module, $className, $method, $args, $mul_mod = false, $is_sta
 {
 	$start = 0;
 	global $__core_env;
-	$__core_env['DEBUG'] === true && $__core_env['STRACE'][$module . '/' . $className . '/' . $method]['start'] = microtime_float();
+	if (isset($__core_env['DEBUG']) && $__core_env['DEBUG'] === true) {
+		$__core_env['STRACE'][$module . '/' . $className . '/' . $method]['start'] = microtime_float();
+	}
+
 	$object = Container::getinstance()->newObj($module, $className, $mul_mod);
 
 	if (method_exists($object, $method)) {
-		if ($args && !is_array($args)) {
+		if ($args !== null && !is_array($args)) {
 			debug_print_backtrace();
+			return false;
 		}
 
 		$result = call_user_func_array(array($object, $method), $args == null ? array() : $args);
@@ -371,13 +506,13 @@ function BaseCall($module, $className, $method, $args, $mul_mod = false, $is_sta
 function getRoles()
 {
 	global $_SESSION;
-	return $_SESSION['janbao_role'];
+	return isset($_SESSION['janbao_role']) ? $_SESSION['janbao_role'] : null;
 }
 
 function getRole($role)
 {
 	global $_SESSION;
-	return $_SESSION['janbao_role'][$role];
+	return isset($_SESSION['janbao_role'][$role]) ? $_SESSION['janbao_role'][$role] : null;
 }
 
 function unregisterRole($role)
@@ -487,9 +622,11 @@ function startFramework()
 
 function checkIfActive($string) {
 	$array=explode(',',$string);
-	if (in_array($_GET['c'],$array)){
+	$c = isset($_GET['c']) ? $_GET['c'] : '';
+	$a = isset($_GET['a']) ? $_GET['a'] : '';
+	if (in_array($c,$array)){
 		return 'active';
-	}elseif ($_GET['c']=='index' && in_array($_GET['a'],$array)){
+	}elseif ($c=='index' && in_array($a,$array)){
 		return 'active';
 	}else
 		return null;
@@ -497,9 +634,11 @@ function checkIfActive($string) {
 
 function checkIfIn($string) {
 	$array=explode(',',$string);
-	if (in_array($_GET['c'],$array)){
+	$c = isset($_GET['c']) ? $_GET['c'] : '';
+	$a = isset($_GET['a']) ? $_GET['a'] : '';
+	if (in_array($c,$array)){
 		return 'in';
-	}elseif ($_GET['c']=='index' && in_array($_GET['a'],$array)){
+	}elseif ($c=='index' && in_array($a,$array)){
 		return 'in';
 	}else
 		return null;
@@ -549,8 +688,10 @@ if (!defined('SYS_ROOT')) {
 
 global $__core_env;
 change_to_super();
-session_save_path(SYS_ROOT . '/../../tmp/');
-session_start();
+$session_save_path = SYS_ROOT . '/../../tmp/';
+session_save_path($session_save_path);
+
+ep_session_start();
 @include_once SYS_ROOT . '/../config.php';
 $__core_env['DEBUG'] = false;
 load_lng('zh');

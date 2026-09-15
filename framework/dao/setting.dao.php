@@ -35,15 +35,15 @@ class SettingDAO extends DAO
 	 */
 	public function _setStackValue($name, $value)
 	{
-		$sql = 'select name as name ,value as value from ' . $this->_TABLE . ' where name=\'' . $name . '\'';
+		$sql = 'select name as name ,value as value from ' . $this->_TABLE . ' where name=\'' . $this->daddslashes($name) . '\'';
 		$result = $this->executex($sql, 'row');
 
 		if (!$result) {
-			$sql = 'insert into setting (`name`,`value`) values (\'' . $name . '\',\'' . $value . '\')';
+			$sql = 'insert into setting (`name`,`value`) values (\'' . $this->daddslashes($name) . '\',\'' . $this->daddslashes($value) . '\')';
 			return $this->executex($sql);
 		}
 
-		$sql = 'update ' . $this->_TABLE . ' set `value`=`value`+' . $value . ' where name=\'' . $name . '\'';
+		$sql = 'update ' . $this->_TABLE . ' set `value`=`value`+' . intval($value) . ' where name=\'' . $this->daddslashes($name) . '\'';
 		return $this->executex($sql);
 	}
 
@@ -52,7 +52,7 @@ class SettingDAO extends DAO
 		$list = $this->getData();
 
 		if (!$list) {
-			return null;
+			return array();
 		}
 
 		$arr = array();

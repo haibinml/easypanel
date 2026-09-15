@@ -140,12 +140,20 @@ class SpeedControl extends Control
 
 		switch ($status) {
 		case '1':
-			$arr = array('action' => ACTION, 'name' => TABLENAME);
-			$this->access->addChain(BEGIN, $arr);
+			if (!$this->access->findChain(BEGIN, TABLENAME)) {
+				$arr = array('action' => ACTION, 'name' => TABLENAME);
+				if (!$this->access->addChain(BEGIN, $arr)) {
+					exit('开启失败');
+				}
+			}
 			break;
 
 		case '2':
-			$this->access->delChainByName(BEGIN, TABLENAME);
+			while ($this->access->findChain(BEGIN, TABLENAME)) {
+				if (!$this->access->delChainByName(BEGIN, TABLENAME)) {
+					exit('关闭失败');
+				}
+			}
 			break;
 
 		default:
@@ -161,7 +169,7 @@ class SpeedControl extends Control
 		$tables = $this->access->listTable();
 		$table_finded = false;
 
-		foreach ($tables as $table) {
+		foreach (ep_iter($tables) as $table) {
 			if ($table == TABLENAME) {
 				$table_finded = true;
 				break;
