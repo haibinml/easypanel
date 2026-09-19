@@ -240,15 +240,20 @@ class CdnPrimaryAPI extends API
 
 		foreach ($lines as $line) {
 			$item = explode('	', $line);
-			if (strcasecmp($item[0][0], '@') == 0 && ($s = explode(':', $item[0]))) {
+			if (count($item) < 3 || $item[0] === '') {
+				continue;
+			}
+
+			$s = explode(':', $item[0], 2);
+			if ($item[0][0] === '@' && count($s) === 2 && $s[1] !== '') {
 				$name = $s[1];
 			}
 			else {
 				$name = $item[0];
 			}
 
-			$flow = $item[1];
-			$flow_cache = $item[2];
+			$flow = intval($item[1]);
+			$flow_cache = intval($item[2]);
 			$vhs[$name] = array('flow_limit' => $flow, 'flow_cache' => $flow_cache);
 		}
 
@@ -336,7 +341,7 @@ class CdnPrimaryAPI extends API
 			if ($info['type'] == 2 || $info['type'] == 3 || $info['type'] == 4 || $info['type'] == 5 || $info['type'] == 7) {
 				continue;
 			}
-			if ($info['type'] == 0 && strncasecmp($info['value'], 'server://', 9) == 0 && strpos($info['value'],';') && strpos($info['value'],'.crt') && strpos($info['value'],'.key')){
+			if ($info['type'] == 0 && strncasecmp($info['value'], 'server://', 9) == 0 && strpos($info['value'],';') !== false && strpos($info['value'],'.crt') !== false && strpos($info['value'],'.key') !== false){
 				$certificate_name = ep_safe_name($info['name']);
 				if ($certificate_name !== '' && !empty($vh['doc_root'])) {
 					$certificate_file = $certificate_name . '.crt';

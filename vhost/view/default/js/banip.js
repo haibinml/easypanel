@@ -1,14 +1,13 @@
 function banip_add()
 {
 	var ip = $("#ip").val();
-	var life_time = $("#life_time").val();
 	if (ip == ""){
 		return alert("IP不能为空");
 	}
 	$.ajax({
 		type:'post',
 		url:'?c=banip&a=addBanip',
-		data:'ip=' + ip + '&life_time= ' + life_time,
+		data:'ip=' + encodeURIComponent(ip),
 		success:function(msg) {
 			if (msg != "成功"){
 				alert(msg);
@@ -30,7 +29,7 @@ function banurl_add()
 	$.ajax({
 		type:'post',
 		url:'?c=banip&a=addBanurl',
-		data:'url=' + encodeURIComponent(url) + '&meth= ' + meth,
+		data:'url=' + encodeURIComponent(url) + '&meth=' + encodeURIComponent(meth),
 		success:function(msg) {
 			if (msg != "成功"){
 				alert(msg);

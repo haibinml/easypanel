@@ -13,8 +13,9 @@ class CdnControl extends Control
 	$prefix,
 	array('name', 'sync_seq')
 	));
+		$vhs2 = array();
 
-		foreach ($vhs as $vh) {
+		foreach (ep_iter($vhs) as $vh) {
 			$vh['name'] = substr($vh['name'], strlen($prefix));
 			$vh['flow_limit'] = 0;
 			$vh['flow_cache'] = 0;
@@ -31,10 +32,12 @@ class CdnControl extends Control
 				foreach ($fls as $fl) {
 					$f = explode('	', $fl);
 
-					if (1 < count($f)) {
+					if (count($f) >= 3) {
 						$vh_name = substr($f[0], strlen($prefix));
-						$vhs2[$vh_name]['flow_limit'] = $f[1];
-						$vhs2[$vh_name]['flow_cache'] = $f[2];
+						if (isset($vhs2[$vh_name])) {
+							$vhs2[$vh_name]['flow_limit'] = intval($f[1]);
+							$vhs2[$vh_name]['flow_cache'] = intval($f[2]);
+						}
 					}
 				}
 			}
@@ -58,16 +61,17 @@ class CdnControl extends Control
 		$result = apicall('cdn', 'getflow', array($prefix, 0));
 		$vhs = daocall('vhost', 'listCdnVhost', array($prefix, null));
 
-		if (count($vhs) <= 0) {
+		if (!is_array($vhs) || count($vhs) <= 0) {
 			whm_return(404);
 		}
 
+		$vhs2 = array();
 		foreach ($vhs as $vh) {
 			$vh['flow_limit'] = 0;
 			$vhs2[$vh['name']] = $vh;
 		}
 
-		$flows = (string) $result->get('flow', 0);
+		$flows = is_object($result) ? (string) $result->get('flow', 0) : '';
 
 		if ($flows != '') {
 			$fls = explode("\n", $flows);
@@ -75,8 +79,8 @@ class CdnControl extends Control
 			foreach ($fls as $fl) {
 				$f = explode('	', $fl);
 
-				if (1 < count($f)) {
-					$vhs2[$f[0]]['flow_limit'] = $f[1];
+				if (count($f) >= 2 && isset($vhs2[$f[0]])) {
+					$vhs2[$f[0]]['flow_limit'] = intval($f[1]);
 				}
 			}
 		}
@@ -118,16 +122,19 @@ class CdnControl extends Control
 		$acess_dir = $GLOBALS['safe_dir'] . '../' . $this->cdn_dir . '/';
 		daocall('vhost', 'delNodeCdn', array($prefix));
 		daocall('vhostinfo', 'delNodeCdn', array($prefix));
-		$op = opendir($acess_dir);
+		$op = @opendir($acess_dir);
 
-		while (($file = readdir($op)) !== false) {
-			if ($file == '.' || $file == '..') {
-				continue;
-			}
+		if ($op) {
+			while (($file = readdir($op)) !== false) {
+				if ($file == '.' || $file == '..') {
+					continue;
+				}
 
-			if (substr($file, 0, $len) == $prefix) {
-				@unlink($acess_dir . $file);
+				if (substr($file, 0, $len) == $prefix) {
+					@unlink($acess_dir . $file);
+				}
 			}
+			closedir($op);
 		}
 
 		apicall('vhost', 'noticeChange', array('localhost'));
@@ -154,7 +161,7 @@ class CdnControl extends Control
 		$acess_dir = $GLOBALS['safe_dir'] . '../' . $this->cdn_dir . '/';
 
 		if (!file_exists($acess_dir)) {
-			@mkdir($acess_dir, '0700');
+			@mkdir($acess_dir, 0700, true);
 		}
 
 		$nodename = $_REQUEST['nodename'];
@@ -331,7 +338,7 @@ class CdnControl extends Control
 		$acess_dir = $GLOBALS['safe_dir'] . 'access.d/';
 
 		if (!file_exists($acess_dir)) {
-			@mkdir($acess_dir, '0700');
+			@mkdir($acess_dir, 0700, true);
 		}
 
 		$xmlfilename = $acess_dir . $prefix . $vhost . '.xml';
@@ -446,7 +453,7 @@ class CdnControl extends Control
 
 		fclose($fp);
 		@unlink($file);
-		return rename($file . '.tmp', $file) == 0;
+		return rename($file . '.tmp', $file);
 	}
 }
 

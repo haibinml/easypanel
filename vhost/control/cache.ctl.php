@@ -129,7 +129,10 @@ class CacheControl extends Control
 		$status = intval($_REQUEST['status']);
 
 		if ($status == 2) {
-			$this->access->delChainByName(BEGIN, CACHE_TABLE);
+			if (!$this->access->delChainByName(BEGIN, CACHE_TABLE)) {
+				exit('关闭失败');
+			}
+			apicall('vhost', 'updateVhostSyncseq', array(getRole('vhost')));
 			exit('成功');
 		}
 

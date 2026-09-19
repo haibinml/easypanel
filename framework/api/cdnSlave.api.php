@@ -6,7 +6,7 @@ class CdnSlaveAPI extends API
 	{
 		$this->acess_dir = $GLOBALS['safe_dir'] . '../cdn/';
 		if (!is_dir($this->acess_dir)) {
-			@mkdir($this->acess_dir, '0700');
+			@mkdir($this->acess_dir, 0700, true);
 		}
 		$prefix = '@' . $nodename . '_';
 		$names = '';

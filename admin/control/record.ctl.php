@@ -71,7 +71,11 @@ class RecordControl extends Control
 			}
 		}
 
-		$order = $_REQUEST['roder'] ? $_REQUEST['roder'] : null;
+		$order = isset($_REQUEST['order']) ? trim(ep_str($_REQUEST['order'])) : null;
+		$allowed_order = array('id', 'domain', 'name', 'type', 'value', 'view', 'ttl', 'status', 'prio', 'change_date');
+		if (!in_array($order, $allowed_order, true)) {
+			$order = null;
+		}
 		$list = daocall('records', 'recordPageList', array($page, $page_count, &$count, $where, $order));
 		$total_page = ceil($count / $page_count);
 

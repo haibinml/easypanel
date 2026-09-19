@@ -38,16 +38,20 @@ class BanipControl extends Control
 		}
 
 		$id = 0;
+		$ips = array();
 
-		foreach ($result->children() as $chain) {
-			$ips[] = array('expire' => $chain['expire'], 'ip' => (string) $chain->children(), 'id' => $id++);
+		if ($result) {
+			foreach ($result->children() as $chain) {
+				$ips[] = array('ip' => (string) $chain->children(), 'id' => $id++);
+			}
 		}
 
 		$this->assign('ips', $ips);
 
 		$id = 0;
+		$urls = array();
 
-		foreach ($result2->children() as $chain) {
+		foreach ($result2 ? $result2->children() : array() as $chain) {
 			$meth = '全部';
 			$url = null;
 			foreach ($chain->children() as $name=>$ch) {
@@ -122,26 +126,23 @@ class BanipControl extends Control
 
 	public function addBanip()
 	{
-		$ip = trim($_REQUEST['ip']);
+		$ip = trim(ep_str(isset($_REQUEST['ip']) ? $_REQUEST['ip'] : ''));
 
-		if (!$ip) {
+		if ($ip === '') {
 			exit('IP地址不能为空');
 		}
-
-		$lifetime = intval($_REQUEST['life_time']);
-
-		if (0 < $lifetime) {
-			$expire = time() + $lifetime * 60;
+		if (!$this->checkIp($ip)) {
+			exit('请输入正确的IP地址');
 		}
 
 		$models['acl_src'] = array('ip' => $ip);
 		$arr['action'] = 'deny';
-		$arr['expire'] = $expire ? $expire : $lifetime;
 
 		if (!$this->access->addChain(DENY_BANIP_TABLE, $arr, $models)) {
 			exit('增加失败');
 		}
 
+		apicall('vhost', 'updateVhostSyncseq', array(getRole('vhost')));
 		exit('成功');
 	}
 
@@ -201,8 +202,8 @@ class BanipControl extends Control
 
 	public function addBanurl()
 	{
-		$url = trim($_REQUEST['url']);
-		$meth = trim($_REQUEST['meth']);
+		$url = trim(ep_str(isset($_REQUEST['url']) ? $_REQUEST['url'] : ''));
+		$meth = trim(ep_str(isset($_REQUEST['meth']) ? $_REQUEST['meth'] : ''));
 
 		if (!$url) {
 			exit('URL不能为空');
@@ -223,6 +224,7 @@ class BanipControl extends Control
 			exit('增加失败');
 		}
 
+		apicall('vhost', 'updateVhostSyncseq', array(getRole('vhost')));
 		exit('成功');
 	}
 
@@ -250,11 +252,17 @@ class BanipControl extends Control
 
 	private function checkIp($ip)
 	{
-		if (!filter_var($ip, FILTER_VALIDATE_IP) && !filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+		$parts = explode('/', $ip, 2);
+		if (!filter_var($parts[0], FILTER_VALIDATE_IP)) {
 			return false;
 		}
 
-		return true;
+		if (count($parts) === 1) {
+			return true;
+		}
+
+		$max_prefix = strpos($parts[0], ':') === false ? 32 : 128;
+		return $parts[1] !== '' && ctype_digit($parts[1]) && intval($parts[1]) <= $max_prefix;
 	}
 
 	private function show_msg($msg)

@@ -13,7 +13,7 @@
 			</td>
 			<td style="border:0">
 			    禁止单个IP：192.168.0.1&nbsp;&nbsp;禁止IP段：192.168.0.1/24&nbsp;
-				<input name='ip' id='ip' size="15" />&nbsp;&nbsp;&nbsp;&nbsp;
+				<input name='ip' id='ip' size="15" />&nbsp;&nbsp;
 			    <input type='button' onclick='banip_add();' value='增加' class="btn btn-warning" />
 			</td>
 		</tr>
@@ -25,7 +25,6 @@
 		<tr>
 			<th style="border-left:0">操作&nbsp;[<a href="javascript:banip_del_all()">清空</a>]</th>
 			<th>禁止IP</th>
-			<th>禁止时间</th>
 		</tr>
 	</thead>
 	{{foreach from=$ips item=row}}
@@ -33,7 +32,6 @@
 	<tr>
 		<td style="border-left:0"><a href="javascript:banip_del({{$row.id}})">删除</a></td>
 		<td>{{$row.ip}}</td>
-		<td>{{if $row.expire==0}}永久{{else}}{{ceil(($row.expire-time())/60)}}{{/if}}</td>
 	</tr>
 	</tbody>
 	{{/foreach}}

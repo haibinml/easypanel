@@ -334,7 +334,7 @@ class CdnAPI extends API
 	 * @param $month
 	 * @param $db_name global.db || flow.db
 	 */
-	private function insert_flow($vhs = array(), $hour, $day, $month, $db_name)
+	private function insert_flow($vhs, $hour, $day, $month, $db_name)
 	{
 		load_lib('pub:flow');
 		$flowobj = new flow($db_name);
@@ -358,8 +358,14 @@ class CdnAPI extends API
 	{
 		$prefix = $prefix ? $prefix : $this->cdn_prefix . $this->setting['local_cdn_name'] . '_';
 		$len = strlen($prefix);
+		$dv = array();
+		$vhs = ep_iter($vhs);
 
 		foreach ($vhs as $vh) {
+			$vh = is_object($vh) ? (array) $vh : $vh;
+			if (!is_array($vh) || !isset($vh['name'])) {
+				continue;
+			}
 			$vh['name'] = substr($vh['name'], $len);
 			$dv[] = $vh;
 		}
@@ -374,14 +380,27 @@ class CdnAPI extends API
 	 */
 	public function getNvhs($l_vhs, $r_vhs)
 	{
+		$ret = array();
+		$r2 = array();
+		$l2 = array();
+		$l_vhs = ep_iter($l_vhs);
+		$r_vhs = ep_iter($r_vhs);
 		$rvhs_1 = $this->arr2ToArr1($r_vhs, 'name');
 		$lvhs_1 = $this->arr2ToArr1($l_vhs, 'name');
 
 		foreach ($r_vhs as $r) {
+			$r = is_object($r) ? (array) $r : $r;
+			if (!is_array($r) || !isset($r['name'])) {
+				continue;
+			}
 			$r2[$r['name']] = $r;
 		}
 
 		foreach ($l_vhs as $ll) {
+			$ll = is_object($ll) ? (array) $ll : $ll;
+			if (!is_array($ll) || !isset($ll['name'])) {
+				continue;
+			}
 			$l2[$ll['name']] = $ll;
 		}
 
@@ -449,12 +468,18 @@ class CdnAPI extends API
 	 */
 	public function getDiffArr($s_arr, $c_arr)
 	{
-		if (count($c_arr) < 0) {
-			return false;
-		}
-
+		$v = array();
+		$s_arr = ep_iter($s_arr);
+		$c_arr = ep_iter($c_arr);
+		if (count($c_arr) === 0) {
+			return $v;
+		} // An empty selection has no matching vhosts.
 		foreach ($c_arr as $c) {
 			foreach ($s_arr as $s) {
+				$s = is_object($s) ? (array) $s : $s;
+				if (!is_array($s) || !isset($s['name'])) {
+					continue;
+				}
 				if ($c == $s['name']) {
 					$v[] = $s;
 				}
@@ -471,8 +496,13 @@ class CdnAPI extends API
 	 */
 	public function arr2ToArr1($arr, $filed = 'name')
 	{
+		$a = array();
+		$arr = ep_iter($arr);
 		foreach ($arr as $ar) {
-			$a[] = $ar[$filed];
+			$ar = is_object($ar) ? (array) $ar : $ar;
+			if (is_array($ar) && isset($ar[$filed])) {
+				$a[] = $ar[$filed];
+			}
 		}
 
 		return $a;
@@ -485,6 +515,8 @@ class CdnAPI extends API
 	 */
 	public function stdClassToArray($arr)
 	{
+		$ar = array();
+		$arr = ep_iter($arr);
 		foreach ($arr as $a) {
 			$ar[] = (array) $a;
 		}
@@ -515,9 +547,15 @@ class CdnAPI extends API
 	public function getCdnStr($vhs)
 	{
 		$str = '';
+		$v = array();
 		$info_all = daocall('vhostinfo', 'getAll', array());
-
+		$vhs = ep_iter($vhs);
+		$info_all = ep_iter($info_all);
 		foreach ($vhs as $vh) {
+			$vh = is_object($vh) ? (array) $vh : $vh;
+			if (!is_array($vh) || empty($vh['doc_root']) || empty($vh['access'])) {
+				continue;
+			}
 			if (!file_exists($vh['doc_root'] . '/' . $vh['access'])) {
 				continue;
 			}
@@ -592,7 +630,7 @@ class CdnAPI extends API
 
 		fclose($fp);
 		@unlink($file);
-		return rename($file . '.tmp', $file) == 0;
+		return rename($file . '.tmp', $file);
 	}
 
 	/**
@@ -600,7 +638,7 @@ class CdnAPI extends API
 	 * @param array $domain name type value
 	 * @param string $mode add or del
 	 */
-	public function sync_vhost_domain($domain = array(), $mode)
+	public function sync_vhost_domain($domain, $mode)
 	{
 		$nodes = ep_iter(daocall('manynode', 'get'));
 
@@ -645,12 +683,18 @@ class CdnAPI extends API
 
 		$vhost = getRole('vhost');
 		$vhost_info = daocall('vhost', 'getVhost', array($vhost));
-		$poststr['access'] = file_get_contents($vhost_info['doc_root'] . '/' . $vhost_info['access']);
-		$poststr['vhost'] = $vhost;
-
-		if (!$access) {
+		if (!is_array($vhost_info) || empty($vhost_info['doc_root']) || empty($vhost_info['access'])) {
 			return false;
 		}
+
+		$access_file = $vhost_info['doc_root'] . '/' . $vhost_info['access'];
+		$access = @file_get_contents($access_file);
+		if ($access === false) {
+			return false;
+		}
+
+		$poststr['access'] = base64_encode($access);
+		$poststr['vhost'] = $vhost;
 
 		$a = 'sync_cdn_access';
 

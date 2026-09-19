@@ -18,10 +18,21 @@ class HostcdnControl extends control
 		$access = new Access();
 		$result = $access->listChain(CDN_TABLE, 1);
 		$id = 0;
+		$cdns = array();
 
-		foreach ($result->children() as $chain) {
-			$c = $chain->children();
-			$cdns[] = array('v' => trim((string) $c[0], '|'), 'host' => (string) $c[1]['host'], 'port' => (string) $c[1]['port'], 'id' => $id++);
+		if ($result !== false) {
+			foreach ($result->children() as $chain) {
+				$row = array('v' => '', 'host' => '', 'port' => '', 'id' => $id++);
+				foreach ($chain->children() as $name => $model) {
+					if ($name === 'acl_host') {
+						$row['v'] = trim((string) $model['v'], '|');
+					} elseif ($name === 'mark_host') {
+						$row['host'] = (string) $model['host'];
+						$row['port'] = (string) $model['port'];
+					}
+				}
+				$cdns[] = $row;
+			}
 		}
 
 		$this->assign('cdns', $cdns);
@@ -31,11 +42,14 @@ class HostcdnControl extends control
 	public function addHostcdn()
 	{
 		$arr['action'] = 'continue';
-		$v = $_REQUEST['v'];
-		$host = $_REQUEST['host'];
-		$port = $_REQUEST['port'] ? $_REQUEST['port'] : '80';
+		$v = trim(ep_str(isset($_REQUEST['v']) ? $_REQUEST['v'] : ''));
+		$host = trim(ep_str(isset($_REQUEST['host']) ? $_REQUEST['host'] : ''));
+		$port = intval(isset($_REQUEST['port']) ? $_REQUEST['port'] : 80);
 		if (!$host || !$v) {
 			return header('Location: ?c=hostcdn&a=hostcdn');
+		}
+		if ($port < 1 || $port > 65535) {
+			exit('端口范围必须为1-65535');
 		}
 
 		$models['acl_host'] = array('v' => $v);
@@ -56,7 +70,10 @@ class HostcdnControl extends control
 	public function delHostcdn()
 	{
 		$access = new Access();
-		$id = $_REQUEST['id'];
+		$id = intval(isset($_REQUEST['id']) ? $_REQUEST['id'] : -1);
+		if ($id < 0) {
+			exit('参数错误');
+		}
 
 		if (!$access->delChain(CDN_TABLE, $id)) {
 			$this->_tpl->assign('msg', '删除失败!');

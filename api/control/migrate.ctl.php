@@ -1,33 +1,4 @@
 <?php
-function verificationSkey()
-{
-	$r = ep_request('r');
-	$a = ep_request('a');
-	$s = ep_request('s');
-
-	if ($r == '' || $a == '' || $s == '') {
-		return false;
-	}
-
-	$skey = daocall('setting', 'get', array('skey'));
-
-	if (!$skey) {
-		return false;
-	}
-
-	$urls = $a . $skey . $r;
-
-	if (ep_hash_equals(md5($urls), $s)) {
-		return true;
-	}
-
-	return false;
-}
-
-if (!verificationskey()) {
-	exit('access denied');
-}
-
 class MigrateControl extends control
 {
 	public function list_vhost()
@@ -49,15 +20,14 @@ class MigrateControl extends control
 
 	public function migrate_domain()
 	{
-		exit('ccc.com=>wwwroot');
-
-		if (!$vh = $_REQUEST['vh']) {
-			return false;
+		$vh = ep_safe_name(trim(ep_request('vh')));
+		if ($vh === '') {
+			exit();
 		}
 
 		$domain = daocall('vhostinfo', 'getDomain', array($vh));
 
-		if (count($domain) < 0) {
+		if (!is_array($domain) || count($domain) <= 0) {
 			exit();
 		}
 

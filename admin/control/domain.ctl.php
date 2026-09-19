@@ -11,11 +11,12 @@ class DomainControl extends Control
 
 	public function domainAdd()
 	{
-		$domain_name = trim($_REQUEST['domain_name']);
-
-		if (is_array($GLOBALS['reserv_domain'])) {
-			$GLOBALS['reserv_domain'][] = $domain_name;
+		$domain_name = trim(ep_str(isset($_REQUEST['domain_name']) ? $_REQUEST['domain_name'] : ''));
+		if ($domain_name === '') {
+			exit('域名不能为空');
 		}
+		$reserv = (isset($GLOBALS['reserv_domain']) && is_array($GLOBALS['reserv_domain'])) ? $GLOBALS['reserv_domain'] : array();
+		$reserv[] = $domain_name;
 
 		$fp = fopen(SYS_ROOT . '/configs/reserv_domain.cfg.php', 'wt');
 
@@ -23,7 +24,6 @@ class DomainControl extends Control
 			exit('不能打开文件' . SYS_ROOT . '/configs/reserv_domain.cfg.php');
 		}
 
-		$reserv = (isset($GLOBALS['reserv_domain']) && is_array($GLOBALS['reserv_domain'])) ? $GLOBALS['reserv_domain'] : array();
 		apicall('utils', 'writeDomainConfig', array($fp, array_unique($reserv)));
 		header('Location: ?c=domain&a=domainFrom');
 		exit();

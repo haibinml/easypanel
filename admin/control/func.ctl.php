@@ -59,6 +59,17 @@ class FuncControl extends control
 		$json['code'] = 400;
 
 		if (@apicall('vhost', 'updateAll', array($arr, $where_arr))) {
+			if ($log === 1) {
+				$vhosts = daocall('vhost', 'listVhost', array(null, 'rows', array('doc_root', 'log_handle')));
+				foreach (ep_iter($vhosts) as $vhost) {
+					if (!empty($vhost['log_handle']) && !empty($vhost['doc_root'])) {
+						$report_dir = rtrim($vhost['doc_root'], '/\\') . '/webalizer';
+						if (!is_dir($report_dir)) {
+							@mkdir($report_dir, 0700, true);
+						}
+					}
+				}
+			}
 			$json['code'] = 200;
 		}
 

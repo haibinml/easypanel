@@ -142,8 +142,9 @@ class NodesControl extends Control
 
 		$view_dir_count = count($view_dir);
 
-		if ($view_dir_count < 0) {
+		if ($view_dir_count <= 0) {
 			$view_dir[] = 'default';
+			$view_dir_count = 1;
 		}
 
 		$phpversions = modcall('php', 'php_get_version');

@@ -25,9 +25,12 @@ class CdnControl extends Control
 		}
 
 		$id = 0;
+		$ips = array();
 
-		foreach ($result->children() as $chain) {
-			$ips[] = array('expire' => $chain['expire'], 'ip' => (string) $chain->children(), 'id' => $id++);
+		if ($result) {
+			foreach ($result->children() as $chain) {
+				$ips[] = array('ip' => (string) $chain->children(), 'id' => $id++);
+			}
 		}
 
 		$this->assign('at', $at);
@@ -79,11 +82,15 @@ class CdnControl extends Control
 				}
 			}
 
+			apicall('vhost', 'updateVhostSyncseq', array(getRole('vhost')));
 			return header('Location: ?c=cdn&a=addTableFrom');
 		}
 
 		if ($status == 2) {
-			$access->delChainByName(BEGIN, DENY_BANIP_TABLE);
+			if (!$access->delChainByName(BEGIN, DENY_BANIP_TABLE)) {
+				exit('关闭失败');
+			}
+			apicall('vhost', 'updateVhostSyncseq', array(getRole('vhost')));
 			return header('Location: ?c=cdn&a=addTableFrom');
 		}
 
@@ -92,27 +99,21 @@ class CdnControl extends Control
 
 	public function addBanip()
 	{
-		$ip = $_REQUEST['ip'];
+		$ip = trim($_REQUEST['ip']);
 
 		if (!$this->checkIp($ip)) {
 			exit('请输入正确的IP地址');
 		}
 
-		$lifetime = $_REQUEST['life_time'];
-
-		if (0 < $lifetime) {
-			$expire = time() + $lifetime * 60;
-		}
-
 		$models['acl_src'] = array('ip' => $ip);
 		$arr['action'] = 'deny';
-		$arr['expire'] = $expire;
 		$access = new Access(getRole('vhost'));
 
 		if (!$access->addChain(DENY_BANIP_TABLE, $arr, $models)) {
 			return false;
 		}
 
+		apicall('vhost', 'updateVhostSyncseq', array(getRole('vhost')));
 		return $this->addTableFrom();
 	}
 
@@ -126,41 +127,18 @@ class CdnControl extends Control
 			return $this->fetch('msg.html');
 		}
 
+		apicall('vhost', 'updateVhostSyncseq', array(getRole('vhost')));
 		return $this->addTableFrom();
 	}
 
 	private function checkIp($str)
 	{
-		$strs = explode('.', $str);
-		$count = count($strs);
-
-		if ($count != 4) {
+		$parts = explode('/', $str, 2);
+		if (!filter_var($parts[0], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
 			return false;
 		}
 
-		$i = 0;
-
-		while ($i < $count - 1) {
-			if (!is_numeric($strs[$i])) {
-				return false;
-			}
-
-			++$i;
-		}
-
-		if (strpos($strs[3], '/')) {
-			$strr = explode('/', $strs[3]);
-			if (!is_numeric($strr[0]) || !is_numeric($strr[1])) {
-				return false;
-			}
-		}
-		else {
-			if (!is_numeric($strs[3])) {
-				return false;
-			}
-		}
-
-		return true;
+		return count($parts) === 1 || ($parts[1] !== '' && ctype_digit($parts[1]) && intval($parts[1]) <= 32);
 	}
 }
 

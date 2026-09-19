@@ -112,14 +112,14 @@ function slave_del(s,sl)
 			<tr id="bg_yellow">
 			<td colspan="8" align="right">
 				{{if $page>1}}
-				<a href='?c=slave&a=slavesPageList&page=0'>首页</a> 
-				<a href='?c=slave&a=slavesPageList&page={{$page-1}}'>上一页</a> 
+				<a href='?c=slave&a=slavePageList&server={{urlencode($server)}}&page=1'>首页</a>
+				<a href='?c=slave&a=slavePageList&server={{urlencode($server)}}&page={{$page-1}}'>上一页</a>
 				{{else}}
 				首页 上一页 
 				{{/if}}
 				{{if $page!=$total_page}} 
-				<a href='?c=slave&a=slavesPageList&page={{$page+1}}'>下一页</a>
-				<a href='?c=slave&a=slavesPageList&page={{$total_page}}'>尾页</a>
+				<a href='?c=slave&a=slavePageList&server={{urlencode($server)}}&page={{$page+1}}'>下一页</a>
+				<a href='?c=slave&a=slavePageList&server={{urlencode($server)}}&page={{$total_page}}'>尾页</a>
 				{{else}}下一页 尾页
 				{{/if}} 
 				{{$page}}/{{$total_page}}&nbsp;

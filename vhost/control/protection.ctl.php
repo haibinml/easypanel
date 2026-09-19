@@ -24,6 +24,7 @@ class ProtectionControl extends Control
 		$access->addTable(BEGIN);
 		$result = $access->listChain(DENY_PATH_TABLE, 1);
 		$id = 0;
+		$paths = array();
 
 		if ($result) {
 			foreach ($result->children() as $chain) {
@@ -53,11 +54,9 @@ class ProtectionControl extends Control
 
 		if ($tables) {
 			foreach (ep_iter($tables) as $table) {
-				if ($table == BEGIN) {
-					if ($table == DENY_PATH_TABLE) {
-						$table_finded = true;
-						break;
-					}
+				if ($table == DENY_PATH_TABLE) {
+					$table_finded = true;
+					break;
 				}
 			}
 		}

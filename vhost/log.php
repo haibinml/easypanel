@@ -17,7 +17,11 @@ if ($p !== false) {
 
 $file = substr($a, 1);
 
-if ($file === '' || strpos($file, '..') !== false || strpos($file, '/') !== false || strpos($file, '\\') !== false) {
+if ($file === '' || $file === 'log.php') {
+	$file = 'index.html';
+}
+
+if (strpos($file, '..') !== false || strpos($file, '/') !== false || strpos($file, '\\') !== false) {
 	exit('invalid file');
 }
 

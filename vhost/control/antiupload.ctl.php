@@ -40,15 +40,18 @@ class AntiuploadControl extends Control
 
 		$result = $this->access->listChain(UPLOAD_TABLE_NAME);
 		$id = 0;
+		$filenames = array();
 
-		foreach ($result->children() as $chain) {
-			foreach ($chain->children() as $ch) {
-				if ($ch['filename'] == '') {
-					continue;
+		if ($result) {
+			foreach ($result->children() as $chain) {
+				foreach ($chain->children() as $ch) {
+					if ($ch['filename'] == '') {
+						continue;
+					}
+
+					$filenames[] = array('filename' => $ch['filename'], 'id' => $id);
+					++$id;
 				}
-
-				$filenames[] = array('filename' => $ch['filename'], 'id' => $id);
-				++$id;
 			}
 		}
 
@@ -103,6 +106,7 @@ class AntiuploadControl extends Control
 		$id = intval($_REQUEST['id']);
 
 		if ($this->access->delChain(UPLOAD_TABLE_NAME, $id)) {
+			apicall('vhost', 'updateVhostSyncseq', array(getRole('vhost')));
 			exit('成功');
 		}
 

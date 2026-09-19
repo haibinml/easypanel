@@ -6,7 +6,6 @@
 			<tr>
 				<td class="td_bgc right_2"><a href="?c=banip&a=delBanip&id={{$row.id}}">删除</a></td>
 				<td class="td_bgc right_2">{{$row.ip}}</td>
-				<td class="td_bgc right_2">{{if $row.expire==0}}永久{{else}}{{ceil(($row.expire-time())/60)}}{{/if}}</td>
 			</tr>
 		</table>
 	</div>
@@ -24,7 +23,6 @@
 			<tr>
 				<td class="td_bgc right_2 td_hg">ip地址(如:192.168.0.1,192.168.0.1/24):
 				<input name='ip' id='ip' value=''></td>
-				<td class="td_bgc right_2">禁止时间(0表示永久):	<input name='life_time' value='0' size=5>&nbsp;分钟</td>
 				<td class="td_bgc right_2"><input type='submit' value='禁止访问'></td>
 			</tr>
 		</form>

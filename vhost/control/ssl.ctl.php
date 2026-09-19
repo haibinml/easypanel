@@ -187,14 +187,14 @@ class SslControl extends Control
 		if ($user['cdn']==0) {
 			exit("<script language='javascript'>alert('虚拟主机不支持设置单域名SSL证书');history.go(-1);</script>");
 		}
-		if(strpos($info['value'], 'proto=tcp')){
+		if(strpos($info['value'], 'proto=tcp') !== false){
 			exit("<script language='javascript'>alert('TCP回源协议的不支持设置SSL证书');history.go(-1);</script>");
 		}
 		$this->_tpl->assign('domain', $domain);
 
 		$ssl = 0;
 
-		if (strncasecmp($info['value'], 'server://', 9) == 0 && strpos($info['value'],';') && strpos($info['value'],'.crt') && strpos($info['value'],'.key')){
+		if (strncasecmp($info['value'], 'server://', 9) == 0 && strpos($info['value'],';') !== false && strpos($info['value'],'.crt') !== false && strpos($info['value'],'.key') !== false){
 			$ssl = 1;
 
 			$file = $user['doc_root'] . '/' . $info['name'] . '.crt';
@@ -271,7 +271,7 @@ class SslControl extends Control
 			}
 		}
 		
-		if (empty($certificate) && empty($certificate_key) && strncasecmp($info['value'], 'server://', 9) == 0 && strpos($info['value'],';') && strpos($info['value'],'.crt') && strpos($info['value'],'.key')){
+		if (empty($certificate) && empty($certificate_key) && strncasecmp($info['value'], 'server://', 9) == 0 && strpos($info['value'],';') !== false && strpos($info['value'],'.crt') !== false && strpos($info['value'],'.key') !== false){
 			$temp = explode(';',$info['value']);
 			$arr['value'] = $temp[0];
 			apicall('vhost', 'updateInfo', array($vhost, $domain, $arr));

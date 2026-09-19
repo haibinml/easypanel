@@ -281,19 +281,18 @@ class ShellAPI extends API
 			return false;
 		}
 
+		$marker = strpos($result, '=200|');
+		if ($marker === false) {
+			echo "sync_host_flow invalid response\r\n";
+			return false;
+		}
+		$lines = explode("\n", substr($result, $marker + 5));
+
+		$this->insert_flow($lines, $hour, $day, $month, 'global.db');
 		daocall('manynode', 'updateManynode', array(
 	$node['host'],
 	array('synctime' => time(), 'syncstatus' => 1)
 	));
-		$flow = explode('=200|', $result);
-		$lines = explode("\n", $flow[1]);
-
-		if (count($lines) < 0) {
-			echo "sync_host_flow not flow to lines\r\n";
-			return false;
-		}
-
-		$this->insert_flow($lines, $hour, $day, $month, 'global.db');
 	}
 
 	/**
@@ -320,13 +319,8 @@ class ShellAPI extends API
 			return false;
 		}
 
-		$flows = (string) $result->get('flow', 0);
+		$flows = (string) $result->get('flow', '');
 		$lines = explode("\n", $flows);
-
-		if (count($lines) < 0) {
-			echo "sync_localhost_flow not flow to lines\r\n";
-			return false;
-		}
 
 		$this->insert_flow($lines, $hour, $day, $month, $db_name);
 
@@ -356,7 +350,11 @@ class ShellAPI extends API
 			}
 
 			$item = explode('	', $line);
-			if (strcasecmp($item[0][0], '@') == 0 && ($s = explode(':', $item[0]))) {
+			if (count($item) < 3 || $item[0] === '') {
+				continue;
+			}
+			$s = explode(':', $item[0], 2);
+			if ($item[0][0] === '@' && count($s) === 2 && $s[1] !== '') {
 				$name = $s[1];
 			}
 			else {

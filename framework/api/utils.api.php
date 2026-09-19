@@ -144,24 +144,17 @@ class UtilsAPI extends API
 
 		while (($file = readdir($op)) !== false) {
 			if ($file != '.' && $file != '..') {
-				rmdir($temp_dir . $file);
-
-				if (is_dir($temp_dir . $file)) {
-					if (substr($file, 0 - 1) != '/' || substr($file, 0 - 1) != '\\') {
-						$dir_r = '/';
-					}
-					else {
-						$dir_r = '';
-					}
-
-					$this->delTempleteFile($temp_dir . $file . $dir_r);
+				$path = $temp_dir . $file;
+				if (is_dir($path) && !is_link($path)) {
+					$this->delTempleteFile($path . '/');
 				}
 				else {
-					unlink($temp_dir . $file);
+					unlink($path);
 				}
 			}
 		}
 
+		closedir($op);
 		rmdir($temp_dir);
 	}
 

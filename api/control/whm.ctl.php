@@ -54,6 +54,124 @@ function proxy_call($whm_package = 'core.whm', $info = null)
 define('TMP_FILE_DIR', $GLOBALS['safe_dir'] . '../tmp/');
 class WhmControl extends Control
 {
+	private function _require_ip_list_post()
+	{
+		if (!isset($_SERVER['REQUEST_METHOD']) || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+			whm_return(405, 'POST required');
+		}
+	}
+
+	private function _ip_list_post_ip()
+	{
+		$ip = isset($_POST['ip']) ? trim(ep_str($_POST['ip'])) : '';
+		if ($ip === '' || filter_var($ip, FILTER_VALIDATE_IP) === false) {
+			whm_return(400, 'Invalid IP address');
+		}
+
+		// Use the same representation for adding and removing IPv6 addresses.
+		$ip = inet_ntop(inet_pton($ip));
+		if ($ip === false) {
+			whm_return(400, 'Invalid IP address');
+		}
+		return $ip;
+	}
+
+	private function _update_ip_list($prefix)
+	{
+		$this->_require_ip_list_post();
+		$ip = $this->_ip_list_post_ip();
+		$whm = apicall('nodes', 'makeWhm', array('localhost'));
+		if (!is_object($whm)) {
+			whm_return(500);
+		}
+
+		$call = new WhmCall('core.whm', 'report_ip');
+		$call->addParam('ips', $prefix . $ip);
+		whm_return2($whm->call($call));
+	}
+
+	public function add_black_ip()
+	{
+		$dynamic = isset($_POST['dynamic']) ? ep_str($_POST['dynamic']) : '0';
+		if ($dynamic !== '0' && $dynamic !== '1') {
+			whm_return(400, 'Invalid dynamic flag');
+		}
+		$this->_update_ip_list($dynamic === '1' ? '0' : '2');
+	}
+
+	public function remove_black_ip()
+	{
+		$this->_update_ip_list('4');
+	}
+
+	public function add_white_ip()
+	{
+		$this->_update_ip_list('3');
+	}
+
+	public function remove_white_ip()
+	{
+		$this->_update_ip_list('4');
+	}
+
+	public function check_black_ip()
+	{
+		$this->_require_ip_list_post();
+		$ip = $this->_ip_list_post_ip();
+		$whm = apicall('nodes', 'makeWhm', array('localhost'));
+		if (!is_object($whm)) {
+			whm_return(500);
+		}
+
+		$call = new WhmCall('core.whm', 'black_list');
+		$call->addParam('a', 'check');
+		$call->addParam('ip', $ip);
+		$result = $whm->call($call);
+		if (!is_object($result) || $result->getCode() !== 200) {
+			whm_return2($result);
+		}
+		$hit = $result->get('hit');
+		if ((string) $hit !== '0' && (string) $hit !== '1') {
+			whm_return(502, 'Invalid Kangle response');
+		}
+		whm_return(200, array('hit' => intval($hit)));
+	}
+
+	public function list_dynamic_black_ips()
+	{
+		$this->_require_ip_list_post();
+		$whm = apicall('nodes', 'makeWhm', array('localhost'));
+		if (!is_object($whm)) {
+			whm_return(500);
+		}
+
+		$result = $whm->call(new WhmCall('core.whm', 'black_list'));
+		if (!is_object($result) || $result->getCode() !== 200) {
+			whm_return2($result);
+		}
+		$ips = array();
+		foreach ($result->getAll('ip') as $ip) {
+			$ips[] = (string) $ip;
+		}
+		whm_return(200, array('ips' => $ips));
+	}
+
+	public function clear_ip_list()
+	{
+		$this->_require_ip_list_post();
+		if (!isset($_POST['confirm']) || ep_str($_POST['confirm']) !== '1') {
+			whm_return(400, 'confirm=1 required');
+		}
+		$whm = apicall('nodes', 'makeWhm', array('localhost'));
+		if (!is_object($whm)) {
+			whm_return(500);
+		}
+
+		$call = new WhmCall('core.whm', 'black_list');
+		$call->addParam('a', 'clear');
+		whm_return2($whm->call($call));
+	}
+
 	public function change_password()
 	{
 		$result = apicall('vhost', 'changePassword', array('localhost', $_REQUEST['name'], $_REQUEST['passwd']));

@@ -49,14 +49,14 @@ class DomainControl extends Control
 					if($port != '443s' && $port != '80'){
 						$dir .= ':' . $port;
 					}
-					if(strpos($domain['value'], 'proto=tcp')){
+					if(strpos($domain['value'], 'proto=tcp') !== false){
 						$proto = 'tcp';
-					}elseif(strpos($domain['value'], 'proto=https')){
+					}elseif(strpos($domain['value'], 'proto=https') !== false){
 						$proto = 'https';
-					}elseif(strpos($domain['value'], '|') && strpos($domain['value'], ':443s:')){
+					}elseif(strpos($domain['value'], '|') !== false && strpos($domain['value'], ':443s:') !== false){
 						$proto = 'follow';
 					}
-					if(strpos($domain['value'],';') && strpos($domain['value'],'.crt') && strpos($domain['value'],'.key')){
+					if(strpos($domain['value'],';') !== false && strpos($domain['value'],'.crt') !== false && strpos($domain['value'],'.key') !== false){
 						$isSsl = 1;
 					}
 				}else{
@@ -155,14 +155,14 @@ class DomainControl extends Control
 						$port = rtrim($port, 's');
 						$dir .= ':' . $port;
 					}
-					if(strpos($value, 'proto=tcp')){
+					if(strpos($value, 'proto=tcp') !== false){
 						if(!getRole('admin')){
 							exit(json_encode(array('code'=>-1, 'msg'=>'tcp回源协议只能由管理员修改')));
 						}
 						$proto = 'tcp';
-					}elseif(strpos($value, 'proto=https')){
+					}elseif(strpos($value, 'proto=https') !== false){
 						$proto = 'https';
-					}elseif(strpos($value, '|') && strpos($value, ':443s:')){
+					}elseif(strpos($value, '|') !== false && strpos($value, ':443s:') !== false){
 						$proto = 'follow';
 					}
 				}else{
@@ -214,14 +214,15 @@ class DomainControl extends Control
 			
 			//当绑定xx.www.com的时候判断*.www.com是否被别的用户绑定
 			if(strpos($domain, '.')!=strrpos($domain, '.') && substr($domain, 0 ,1)!='*' && !getRole('admin')){
-				$domain2 = str_replace(substr($domain,0,strpos($domain, '.')),'*',$domain);
+				$domain2 = '*' . substr($domain, strpos($domain, '.'));
+
 				$ret = daocall('vhostinfo', 'findDomain', array($domain2));
 
 				if ($ret) {
 					if (($ret['vhost'] != $vhost)) {
 						$vhostinfo = daocall('vhost', 'getVhost', array($ret['vhost']));
 						if(is_array($vhostinfo) && $vhostinfo['status']==1){
-							if (!apicall('vhost', 'delInfo', array($ret['vhost'], $domain, 0, null))) {
+							if (!apicall('vhost', 'delInfo', array($ret['vhost'], $domain2, 0, null))) {
 								exit('该域名已被他人绑定，请联系管理员(del)');
 							}
 							$isreplace = false;
@@ -291,7 +292,7 @@ class DomainControl extends Control
 			if(checkIp($subdir)==false && checkDomain($subdir)==false || strpos($subdir,'.')===false || strpos($subdir,'*')!==false){
 				exit('源站IP填写错误');
 			}
-			if(!is_numeric($port) || $port<0 || $port>65535){
+			if(!is_numeric($port) || $port <= 0 || $port > 65535){
 				exit('源站端口填写错误');
 			}
 			if($proto == 'tcp'){
@@ -317,7 +318,7 @@ class DomainControl extends Control
 			exit('该空间不允许绑定域名');
 		}
 
-		if (0 < $user['domain']) {
+		if (!$isreplace && 0 < $user['domain']) {
 			$count = daocall('vhostinfo', 'getDomainCount', array($vhost));
 			if ($count && $user['domain'] <= $count) {
 				exit('该空间绑定域名数限制为:' . $user['domain'] . '个');

@@ -50,15 +50,26 @@ class AccessControl extends Control
 
 	public function emptyFilter()
 	{
-		daocall('filter', 'clear');
 		$access = new Access(null, 'response');
-		$access->emptyTable(BEGIN);
-		$access->emptyTable(DENY_FILTER_TABLE);
-
-		if (!$access->delTable(DENY_FILTER_TABLE)) {
+		$tables = $access->listTable();
+		if ($tables === false) {
 			$this->assign('msg', '清空失败');
 			return $this->fetch('msg.html');
 		}
+
+		if (in_array(DENY_FILTER_TABLE, $tables, true)) {
+			$chain = $access->findChain(BEGIN, DENY_FILTER_TABLE);
+			if ($chain !== false && !$access->delChainByName(BEGIN, DENY_FILTER_TABLE)) {
+				$this->assign('msg', '清空失败');
+				return $this->fetch('msg.html');
+			}
+			if (!$access->emptyTable(DENY_FILTER_TABLE) || !$access->delTable(DENY_FILTER_TABLE)) {
+				$this->assign('msg', '清空失败');
+				return $this->fetch('msg.html');
+			}
+		}
+
+		daocall('filter', 'clear');
 
 		header('Location: ?c=access&a=filterFrom');
 		exit();
@@ -120,13 +131,7 @@ class AccessControl extends Control
 		$keyword = apicall('utils', 'mergeKeyword', array($keywords));
 		$chain = $access->findChain(BEGIN, DENY_FILTER_TABLE);
 
-		if ($chain) {
-			foreach ($chain->children() as $ch) {
-				if ($ch['name']) {
-					$name = $ch['name'];
-				}
-			}
-		}
+		$name = $chain !== false ? DENY_FILTER_TABLE : null;
 
 		$this->assign('key', $keyword);
 		$this->assign('name', $name);
@@ -184,9 +189,12 @@ class AccessControl extends Control
 		else {
 			$result = $access->listChain(DENY_IP_TABLE, 1);
 			$id = 0;
+			$ips = array();
 
-			foreach ($result->children() as $chain) {
-				$ips[] = array('expire' => $chain['expire'], 'ip' => (string) $chain->children(), 'id' => $id++);
+			if ($result) {
+				foreach ($result->children() as $chain) {
+					$ips[] = array('ip' => (string) $chain->children(), 'id' => $id++);
+				}
 			}
 
 			$this->assign('ips', $ips);
@@ -197,20 +205,33 @@ class AccessControl extends Control
 
 	public function addip()
 	{
-		$arr['begin_sub_form'] = 'acl_src';
-		$arr['ip'] = $_REQUEST['ip'];
-		$arr['end_sub_form'] = 1;
-		$life_time = intval($_REQUEST['life_time']);
-
-		if (0 < $life_time) {
-			$arr['expire'] = time() + $life_time * 60;
+		$ip = trim(ep_str(isset($_REQUEST['ip']) ? $_REQUEST['ip'] : ''));
+		if (!$this->checkIp($ip)) {
+			exit('请输入正确的IP地址');
 		}
-
+		$arr['begin_sub_form'] = 'acl_src';
+		$arr['ip'] = $ip;
+		$arr['end_sub_form'] = 1;
 		$arr['action'] = 'deny';
 		$access = new Access();
 		$access->addChain(DENY_IP_TABLE, $arr);
 		header('Location: ?c=access&a=ip');
 		exit();
+	}
+
+	private function checkIp($ip)
+	{
+		$parts = explode('/', $ip, 2);
+		if (!filter_var($parts[0], FILTER_VALIDATE_IP)) {
+			return false;
+		}
+
+		if (count($parts) === 1) {
+			return true;
+		}
+
+		$max_prefix = strpos($parts[0], ':') === false ? 32 : 128;
+		return $parts[1] !== '' && ctype_digit($parts[1]) && intval($parts[1]) <= $max_prefix;
 	}
 
 	public function delip()
