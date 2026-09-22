@@ -26,6 +26,7 @@ class BackupAPI extends API
 	private $ignoredatabase;
 	private $isbackup_web;
 	private $isbackup_mysql;
+	private $log_bin;
 
 	public function __construct()
 	{
@@ -310,6 +311,8 @@ class BackupAPI extends API
 		$this->showCmd("backupweb cmd=\n");
 		$this->showCmd($cmd);
 		$this->showCmd("\n");
+		$out = array();
+		$status = 0;
 		exec($cmd, $out, $status);
 		if ($status != 0 && $status != 0 - 1) {
 			print_r($out);
@@ -409,6 +412,8 @@ class BackupAPI extends API
 			return false;
 		}
 
+		$binfile0 = array();
+
 		foreach ($binfile as $row) {
 			$binfile0[] = $row[0];
 		}
@@ -416,6 +421,8 @@ class BackupAPI extends API
 		$pdo->query('flush logs');
 		$selectlog = $pdo->query('show master logs');
 		$binfile = $selectlog->fetchAll();
+
+		$binfile1 = array();
 
 		foreach ($binfile as $row) {
 			$binfile1[] = $row[0];
@@ -447,8 +454,10 @@ class BackupAPI extends API
 			$savefile = $this->filesavedir . $database . '.sql.7z';
 			$cmd2 = $this->get7zcmdArray($savefile);
 			$cmd2[] = '-si' . $database . '.sql';
+			$pipes = array();
+			$stderr = '';
 			$processhandle = $process->run(array($cmd, $cmd2), null, $pipes, null, null, $stderr);
-			$result = $process->result($processhandle, $pipes);
+			$result = $process->result($processhandle, $pipes, null, null, '-', $stderr);
 			if ($result != 0 && $result != 0 - 1) {
 				$this->showMsg('error:backupMysqlSingleInc ' . $database . ' result=' . $result . "\n");
 				continue;
@@ -497,6 +506,8 @@ class BackupAPI extends API
 		$this->showMsg("backupmysqlinc cmd=\n");
 		$this->showCmd($cmd);
 		$this->showMsg("\n");
+		$out = array();
+		$status = 0;
 		exec($cmd, $out, $status);
 		if ($status != 0 && $status != 0 - 1) {
 			$this->showMsg("backup mysqlinc falied\n");
@@ -544,6 +555,8 @@ class BackupAPI extends API
 		$this->showMsg("backupmysqlfull cmd=\n");
 		$this->showCmd($cmd);
 		$this->showMsg("\n");
+		$out = array();
+		$status = 0;
 		exec($cmd, $out, $status);
 		if ($status != 0 && $status != 0 - 1) {
 			$this->showMsg('backupmysqlfull failed status=.' . $status . "\n");
@@ -576,6 +589,8 @@ class BackupAPI extends API
 			if (count($log_ret) <= 0) {
 				return false;
 			}
+
+			$log_names = array();
 
 			foreach ($log_ret as $log) {
 				$log_names[] = $log[0];
@@ -776,6 +791,8 @@ class BackupAPI extends API
 			return false;
 		}
 
+		$out = array();
+		$status = 0;
 		exec($cmd, $out, $status);
 		if ($status != 0 && $status != 0 - 1) {
 			print_r($out);
@@ -1196,6 +1213,8 @@ class BackupAPI extends API
 			$cmd .= $this->get7zcmd();
 			$cmd .= $this->filesavedir . '/' . $filename;
 			$cmd .= ' -si' . $databasename . '.sql';
+			$msg = array();
+			$status = 0;
 			exec($cmd, $msg, $status);
 			if ($status != 0 && $status != 0 - 1) {
 				print_r($msg);

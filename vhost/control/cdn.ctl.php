@@ -74,6 +74,7 @@ class CdnControl extends Control
 			$this->addTable(BEGIN);
 
 			if ($access->findChain(BEGIN, DENY_BANIP_TABLE) == null) {
+				$arr = array();
 				$arr['action'] = ACTION;
 				$arr['name'] = DENY_BANIP_TABLE;
 
@@ -99,12 +100,13 @@ class CdnControl extends Control
 
 	public function addBanip()
 	{
-		$ip = trim($_REQUEST['ip']);
+		$ip = trim(ep_request('ip'));
 
 		if (!$this->checkIp($ip)) {
 			exit('请输入正确的IP地址');
 		}
 
+		$models = array();
 		$models['acl_src'] = array('ip' => $ip);
 		$arr['action'] = 'deny';
 		$access = new Access(getRole('vhost'));

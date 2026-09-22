@@ -37,6 +37,7 @@ class ManynodeControl extends control
 			$status = '404';
 		}
 
+		$ret = array();
 		$ret['status'] = $status;
 		$ret['count'] = $count;
 		$ret['nodes'] = $nodes;
@@ -105,15 +106,15 @@ class ManynodeControl extends control
 			exit('请先增加主节点名称');
 		}
 
-		$name = trim($_REQUEST['name']);
+		$name = trim(ep_request('name'));
 
 		if (!preg_match('/^[0-9a-z]{2,15}$/', $name)) {
 			exit('节点名称请用数字和字母的集合');
 		}
 
-		$host = trim($_REQUEST['host']);
+		$host = trim(ep_request('host'));
 		$port = intval($_REQUEST['port']);
-		$skey = trim($_REQUEST['skey']);
+		$skey = trim(ep_request('skey'));
 		$mem = $_REQUEST['mem'];
 		if (!$name || !$host) {
 			return $this->pageList();
@@ -136,6 +137,7 @@ class ManynodeControl extends control
 			return false;
 		}
 
+		$node = array();
 		$node['name'] = $_REQUEST['name'];
 		$node['skey'] = $_REQUEST['skey'];
 		$node['host'] = $_REQUEST['host'];

@@ -75,6 +75,7 @@ class BackupControl extends control
 	'rows',
 	array('name')
 	));
+		$json = array();
 		$json['vhs'] = $vhs;
 		$json['count'] = count($vhs);
 		exit(json_encode($json));
@@ -105,11 +106,11 @@ class BackupControl extends control
 
 	public function add()
 	{
-		daocall('setting', 'add', array('backup', trim($_REQUEST['backup'])));
-		daocall('setting', 'add', array('ftp_host', trim($_REQUEST['ftp_host'])));
-		daocall('setting', 'add', array('ftp_port', trim($_REQUEST['ftp_port'])));
-		daocall('setting', 'add', array('ftp_user', trim($_REQUEST['ftp_user'])));
-		daocall('setting', 'add', array('ftp_passwd', trim($_REQUEST['ftp_passwd'])));
+		daocall('setting', 'add', array('backup', trim(ep_request('backup'))));
+		daocall('setting', 'add', array('ftp_host', trim(ep_request('ftp_host'))));
+		daocall('setting', 'add', array('ftp_port', trim(ep_request('ftp_port'))));
+		daocall('setting', 'add', array('ftp_user', trim(ep_request('ftp_user'))));
+		daocall('setting', 'add', array('ftp_passwd', trim(ep_request('ftp_passwd'))));
 		daocall('setting', 'add', array('backup_all_date', intval($_REQUEST['backup_all_date'])));
 		daocall('setting', 'add', array('backup_date', intval($_REQUEST['backup_date'])));
 		daocall('setting', 'add', array('volumn_size', $_REQUEST['volumn_size'] ? $_REQUEST['volumn_size'] : '200'));
@@ -122,7 +123,7 @@ class BackupControl extends control
 		}
 
 		daocall('setting', 'add', array('backup_hour', $backup_hour));
-		$backsavedir = trim($_REQUEST['backup_dir']);
+		$backsavedir = trim(ep_request('backup_dir'));
 
 		if (substr($backsavedir, 0 - 1) == '\\') {
 			$len = strlen($backsavedir);
@@ -142,7 +143,7 @@ class BackupControl extends control
 			exit('远程目录未设置');
 		}
 
-		$ftp_dir = trim($_REQUEST['ftp_dir']);
+		$ftp_dir = trim(ep_request('ftp_dir'));
 		$ftp_dir = trim($ftp_dir);
 		$ftp_dir = trim($ftp_dir, '/');
 		$ftp_dir = trim($ftp_dir, '\\');
@@ -153,18 +154,18 @@ class BackupControl extends control
 
 		daocall('setting', 'add', array('ftp_dir', $ftp_dir));
 		daocall('setting', 'add', array('backup_mysql', intval($_REQUEST['backup_mysql'])));
-		daocall('setting', 'add', array('backup_passwd', trim($_REQUEST['backup_passwd'])));
-		daocall('setting', 'add', array('backup_save_day', trim($_REQUEST['backup_save_day'])));
+		daocall('setting', 'add', array('backup_passwd', trim(ep_request('backup_passwd'))));
+		daocall('setting', 'add', array('backup_save_day', trim(ep_request('backup_save_day'))));
 		daocall('setting', 'add', array('backup_web', intval($_REQUEST['backup_web'])));
 		return $this->addForm();
 	}
 
 	public function testFtp()
 	{
-		$user = trim($_REQUEST['user']);
-		$host = trim($_REQUEST['host']);
-		$passwd = trim($_REQUEST['passwd']);
-		$port = trim($_REQUEST['port']);
+		$user = trim(ep_request('user'));
+		$host = trim(ep_request('host'));
+		$passwd = trim(ep_request('passwd'));
+		$port = trim(ep_request('port'));
 		$ftpcon = ftp_connect($host, $port);
 		$ftplogin = ftp_login($ftpcon, $user, $passwd);
 

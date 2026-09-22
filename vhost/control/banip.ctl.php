@@ -102,6 +102,7 @@ class BanipControl extends Control
 			$this->addTable(BEGIN);
 
 			if ($this->access->findChain(BEGIN, DENY_BANIP_TABLE) == false) {
+				$arr = array();
 				$arr['action'] = ACTION;
 				$arr['name'] = DENY_BANIP_TABLE;
 
@@ -135,7 +136,9 @@ class BanipControl extends Control
 			exit('请输入正确的IP地址');
 		}
 
+		$models = array();
 		$models['acl_src'] = array('ip' => $ip);
+		$arr = array();
 		$arr['action'] = 'deny';
 
 		if (!$this->access->addChain(DENY_BANIP_TABLE, $arr, $models)) {

@@ -30,6 +30,8 @@ class BindAPI extends API
 		}
 		$key = $view . "_key:" . $v["key"];
 		$cmd = $this->bind_dir . "bin/dig @" . escapeshellarg($host) . " -y " . escapeshellarg($key) . " " . escapeshellarg($domain);
+		$out = array();
+		$status = 0;
 		exec($cmd, $out, $status);
 		if ($status != 0 && $status != 0 - 1) {
 			$this->setErrorMsg("dig cmd run error");
@@ -41,6 +43,8 @@ class BindAPI extends API
 	{
 		if (file_exists($this->bind_dir . "sbin/named")) {
 			$cmd = $this->bind_dir . "sbin/rndc status";
+			$out = array();
+			$status = 0;
 			exec($cmd, $out, $status);
 			if ($status != 0 && $status != 0 - 1) {
 				$this->setErrorMsg("rndc status cmd run failed status:" . $status);
@@ -70,6 +74,8 @@ class BindAPI extends API
 	public function checkZone($domain, $filename)
 	{
 		$cmd = $this->bind_dir . "sbin/named-checkzone " . escapeshellarg($domain) . " " . escapeshellarg($filename);
+		$out = array();
+		$status = 0;
 		exec($cmd, $out, $status);
 		if ($status != 0 && $status != 0 - 1) {
 			$this->setErrorMsg("checkzone cmd result status=" . $status);
@@ -116,6 +122,8 @@ class BindAPI extends API
 	}
 	public function namedRestart()
 	{
+		$out = array();
+		$status = 0;
 		exec("killall named", $out, $status);
 		if ($status != 0 && $status != 0 - 1) {
 		}
@@ -234,6 +242,7 @@ class BindAPI extends API
 		$str .= "\t\t15M;\n";
 		$str .= "\t\t1W;\n";
 		$str .= "\t\t10 )\n";
+		$arr = array();
 		$arr["name"] = $domain;
 		$fileds = array("server");
 		$info = daocall("domains", "getDomain", array($arr, $fileds));
@@ -287,7 +296,7 @@ class BindAPI extends API
 				}
 				return true;
 			}
-			$this->setErrorMsg(implode(" ", $check));
+			$this->setErrorMsg(implode(" ", is_array($check) ? $check : array()));
 			return false;
 		}
 		$fp = fopen($domain_dir . "/" . $view, "wt");
@@ -469,6 +478,8 @@ class BindAPI extends API
 	}
 	public function rndcReload($zone = null, $view = null)
 	{
+		$out = array();
+		$status = 0;
 		exec("/vhs/bind/sbin/rndc reload", $out, $status);
 		if ($status != 0 && $status != 0 - 1) {
 			$this->setErrorMsg("重新加载失败 状态 " . $status . " line " . 535);
@@ -536,6 +547,8 @@ class BindAPI extends API
 	}
 	private function runCmd($cmd)
 	{
+		$out = array();
+		$status = 0;
 		exec($cmd, $out, $status);
 		if ($status != 0 && $status != 0 - 1) {
 			$this->setErrorMsg("runcmd failed status=" . $status . " line " . 605);

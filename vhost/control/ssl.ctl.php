@@ -149,8 +149,10 @@ class SslControl extends Control
 		switch ($status) {
 		case 1:
 			if ($find_result == false) {
+				$arr = array();
 				$arr['action'] = 'continue';
 				$arr['name'] = '!ssl_rewrite';
+				$models = array();
 				$models['mark_url_rewrite'] = array('url' => '^http://(.*)$', 'dst' => 'https://$1', 'nc' => '1', 'code' => '301');
 				$result = $this->access->addChain('BEGIN', $arr, $models);
 				break;
@@ -173,7 +175,7 @@ class SslControl extends Control
 
 	public function domainSslForm()
 	{
-		$domain = strtolower(trim($_GET['domain']));
+		$domain = strtolower(trim(ep_request('domain')));
 		$vhost = getRole('vhost');
 		$info = daocall('vhostinfo', 'getInfo', array($vhost, 0, $domain));
 		if(!$info){
@@ -253,7 +255,7 @@ class SslControl extends Control
 
 	public function domainSsl()
 	{
-		$domain = strtolower(trim($_POST['domain']));
+		$domain = strtolower(trim(ep_request('domain')));
 		$vhost = getRole('vhost');
 		$info = daocall('vhostinfo', 'getInfo', array($vhost, 0, $domain));
 		if(!$info){
@@ -331,7 +333,7 @@ class SslControl extends Control
 
 	public function domainSslRewrite()
 	{
-		$domain = strtolower(trim($_POST['domain']));
+		$domain = strtolower(trim(ep_request('domain')));
 		$vhost = getRole('vhost');
 		$info = daocall('vhostinfo', 'getInfo', array($vhost, 0, $domain));
 		if(!$info){

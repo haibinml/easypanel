@@ -3,6 +3,7 @@ class DomainAPI extends API
 {
 	public function checkPasswd($name, $passwd)
 	{
+		$arr = array();
 		$arr['name'] = $name;
 		$domain = daocall('domains', 'getDomain', array($arr));
 

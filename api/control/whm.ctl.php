@@ -213,7 +213,7 @@ class WhmControl extends Control
 		if ($vh) {
 			if (!$_REQUEST['showpasswd']) {
 				unset($vh['passwd']);
-				unset($row['gid']);
+				unset($vh['gid']);
 			}
 
 			whm_return(200, $vh);
@@ -245,7 +245,7 @@ class WhmControl extends Control
 
 	public function del_vh()
 	{
-		$name = trim($_REQUEST['name']);
+		$name = trim(ep_request('name'));
 		$result = apicall('vhost', 'del', array('localhost', $name));
 		whm_return($result ? 200 : 500);
 	}
@@ -281,6 +281,7 @@ class WhmControl extends Control
 
 	public function info()
 	{
+		$info = array();
 		$info['easypanel_version'] = EASYPANEL_VERSION;
 		proxy_call('core.whm', $info);
 	}
@@ -297,7 +298,7 @@ class WhmControl extends Control
 
 	public function add_vh()
 	{
-		if (trim($_REQUEST['name']) == '') {
+		if (trim(ep_request('name')) == '') {
 			whm_return('500 name is empty or Presence');
 			return false;
 		}
@@ -334,7 +335,7 @@ class WhmControl extends Control
 		}
 
 		$ret = array();
-		$vh_info = daocall('vhost', 'getVhost', array(trim($_REQUEST['vh'])));
+		$vh_info = daocall('vhost', 'getVhost', array(trim(ep_request('vh'))));
 
 		if (!$vh_info) {
 			whm_return(400);
@@ -350,7 +351,7 @@ class WhmControl extends Control
 		}
 
 		$ret['vh'] = $vh_info;
-		$info = daocall('vhostinfo', 'getInfo', array(trim($_REQUEST['vh'])));
+		$info = daocall('vhostinfo', 'getInfo', array(trim(ep_request('vh'))));
 		$ret['info'] = $info;
 		$ret = base64_encode(json_encode($ret));
 		whm_return(200, array('vh' => $ret));
@@ -390,7 +391,7 @@ class WhmControl extends Control
 
 	public function migrate_complete()
 	{
-		$vh = trim($_REQUEST['vh']);
+		$vh = trim(ep_request('vh'));
 
 		if (!$vh) {
 			whm_return2(500);

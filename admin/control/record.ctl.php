@@ -4,9 +4,10 @@ class RecordControl extends Control
 {
 	public function recordDel()
 	{
+		$arr = array();
 		$arr['id'] = intval($_REQUEST['id']);
-		$arr['domain'] = trim($_REQUEST['domain']);
-		$arr['name'] = trim($_REQUEST['name']);
+		$arr['domain'] = trim(ep_request('domain'));
+		$arr['name'] = trim(ep_request('name'));
 
 		if (!$arr['name']) {
 			$arr['name'] = '@';
@@ -21,7 +22,8 @@ class RecordControl extends Control
 
 	public function domainDig()
 	{
-		$domain = $_REQUEST['name'] . '.' . $_REQUEST['domain'];
+		$domain = ep_request('name') . '.' . ep_request('domain');
+		$json = array();
 		$json['code'] = 404;
 
 		if (!$domain) {
@@ -50,7 +52,7 @@ class RecordControl extends Control
 
 		$page_count = 20;
 		$count = 0;
-		$where = null;
+		$where = array();
 
 		if ($_REQUEST['mode']) {
 			switch ($_REQUEST['mode']) {
@@ -59,11 +61,11 @@ class RecordControl extends Control
 				break;
 
 			case 'domain':
-				$where['domain'] = trim($_REQUEST['mode_value']);
+				$where['domain'] = trim(ep_request('mode_value'));
 				break;
 
 			case 'view':
-				$where['view'] = trim($_REQUEST['mode_value']);
+				$where['view'] = trim(ep_request('mode_value'));
 				break;
 
 			default:

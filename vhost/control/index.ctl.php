@@ -66,6 +66,7 @@ class IndexControl extends Control
 			$v = trim(ep_request('v'));
 			if(empty($v) || !array_key_exists($v, $versions))exit('参数错误');
 
+			$arr = array();
 			$arr['value'] = '1,cmd:' . $v . ',*';
 
 			if (!apicall('vhost', 'updateInfo', array($vhost, '1,php', $arr, 3))) {

@@ -67,7 +67,7 @@ class AntiuploadControl extends Control
 
 	public function antiuploadAdd()
 	{
-		$filename_str = trim($_REQUEST['filename']);
+		$filename_str = trim(ep_request('filename'));
 
 		if ($filename_str == '') {
 			return $this->show_msg('文件名不能为空');
@@ -90,7 +90,9 @@ class AntiuploadControl extends Control
 
 		$f = trim($f, '|');
 		$f .= '$';
+		$arr = array();
 		$arr['action'] = 'deny';
+		$models = array();
 		$models['mark_post_file'] = array('filename' => $f);
 
 		if ($this->access->addChain(UPLOAD_TABLE_NAME, $arr, $models)) {

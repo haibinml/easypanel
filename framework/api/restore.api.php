@@ -116,7 +116,9 @@ class RestoreAPI extends API
 			$this->showMsg("restore etc .........done\n");
 			$vhs = daocall('vhost', 'listVhost', array());
 
-			foreach ($vhs as $vh) {
+			$v = array();
+
+			foreach (ep_iter($vhs) as $vh) {
 				if ($vh['ignore_backup'] == 1) {
 					continue;
 				}
@@ -292,6 +294,8 @@ class RestoreAPI extends API
 		$this->outCmd("restore mysqlinc cmd=\n");
 		$this->outCmd($zzcmd);
 		$this->outCmd("\n");
+		$out = array();
+		$status = 0;
 		exec($zzcmd, $out, $status);
 		if ($status != 0 && $status != 0 - 1) {
 			$this->showMsg('restore error : zip file ' . $wget_file . " failed\n");
@@ -335,6 +339,8 @@ class RestoreAPI extends API
 
 			$acmd = $logcmd . ' ' . $this->backup_dir . $f . ' | ';
 			$bcmd = $acmd . $mcmd;
+			$out = array();
+			$status = 0;
 			exec($bcmd, $out, $status);
 			$this->outCmd("restore mysqlinc cmd=\n");
 			$this->outCmd($bcmd);
@@ -563,6 +569,8 @@ class RestoreAPI extends API
 		}
 
 		$command = $command0 . $command2;
+		$out = array();
+		$status = 0;
 		exec($command, $out, $status);
 		$this->outCmd($command . "\n");
 		if ($status != 0 && $status != 0 - 1) {
@@ -749,6 +757,8 @@ class RestoreAPI extends API
 			exec('/vhs/kangle/bin/kangle -q');
 		}
 
+		$out = array();
+		$status = 0;
 		exec($cmd, $out, $status);
 		$this->outCmd("restore etc cmd=\n" . $cmd . "\n");
 		if ($status != 0 && $status != 0 - 1) {
@@ -815,11 +825,14 @@ class RestoreAPI extends API
 			$cmd .= ' ' . $file;
 			$cmd .= ' -o' . $vh['doc_root'] . ' ' . $vh['name'] . '.txt';
 			$cmd .= ' -aoa';
+			$out = array();
+			$status = 0;
 			exec($cmd, $out, $status);
 			$this->outCmd("restoreweb cmd=\n");
 			$this->outCmd($cmd);
 			$this->outCmd("\n");
 			$call = 'restore';
+			$attr = array();
 			$attr['file'] = $file;
 			$attr['out_dir'] = $vh['doc_root'];
 			$attr['mode'] = '-aos';
@@ -953,6 +966,8 @@ class RestoreAPI extends API
 		}
 
 		$i = $start_index;
+
+		$restore_dir = array();
 
 		while ($i < $count) {
 			$dir = $ftp_dirs[$i];

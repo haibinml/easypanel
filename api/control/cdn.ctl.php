@@ -43,6 +43,7 @@ class CdnControl extends Control
 			}
 		}
 
+		$ret = array();
 		$ret['vhs'] = json_encode($vhs2);
 		$ret['ip'] = $_SERVER['REMOTE_ADDR'];
 		whm_return(200, $ret);
@@ -97,7 +98,7 @@ class CdnControl extends Control
 
 	public function del_cdn()
 	{
-		$vhost = trim($_REQUEST['vhost']);
+		$vhost = trim(ep_request('vhost'));
 		$nodename = $_REQUEST['nodename'];
 		$prefix = $this->cdn_prefix . $nodename . '_';
 		$acess_dir = $GLOBALS['safe_dir'] . '../' . $this->cdn_dir . '/';
@@ -265,8 +266,12 @@ class CdnControl extends Control
 	 */
 	public function stdClassToArray($arr)
 	{
-		foreach ($arr as $a) {
-			$ar[] = (array) $a;
+		$ar = array();
+
+		if (is_array($arr) || is_object($arr)) {
+			foreach ($arr as $a) {
+				$ar[] = (array) $a;
+			}
 		}
 
 		return $ar;
@@ -281,19 +286,19 @@ class CdnControl extends Control
 	public function sync_cdn_domain()
 	{
 		$info = (array) json_decode($_REQUEST['info']);
-		$prefix = trim($_REQUEST['nodename']) . '_';
+		$prefix = trim(ep_request('nodename')) . '_';
 
 		if (!$info) {
 			exit("info is empty\r\n");
 		}
 
-		$vhost = trim($_REQUEST['vhost']);
+		$vhost = trim(ep_request('vhost'));
 
 		if (!$vhost) {
 			exit("vhost is empty\r\n");
 		}
 
-		$mode = trim($_REQUEST['mode']);
+		$mode = trim(ep_request('mode'));
 		$check_value = apicall('utils', 'is_ipv4', array($info['value']));
 		$infovalue = $info['value'];
 
@@ -325,7 +330,7 @@ class CdnControl extends Control
 	public function sync_cdn_access()
 	{
 		$access = base64_decode($_REQUEST['access']);
-		$prefix = trim($_REQUEST['nodename']) . '_';
+		$prefix = trim(ep_request('nodename')) . '_';
 		$vhost = $_REQUEST['vhost'];
 		if (!$access || !$vhost || !$_REQUEST['nodename']) {
 			exit("error: access or nodename or vhost is empty\r\n");

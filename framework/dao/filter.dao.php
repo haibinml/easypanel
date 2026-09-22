@@ -10,6 +10,7 @@ class FilterDAO extends DAO
 
 	public function add($value)
 	{
+		$arr = array();
 		$arr['value'] = $value;
 		return $this->insert($arr);
 	}

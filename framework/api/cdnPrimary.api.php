@@ -311,6 +311,7 @@ class CdnPrimaryAPI extends API
 			}
 		}
 
+		$ret = array();
 		$ret['sync'] = $sync;
 		$ret['del'] = $del;
 		return $ret;

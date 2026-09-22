@@ -31,8 +31,8 @@ class WhmAPI extends API
 		daocall('vhosttemplete', 'updateNodeState', array($node['name']));
 		$whm = new WhmClient();
 		$whm->setAuth($node['user'], $node['passwd']);
-		$whm->setWhmUrl('http://' . $node['host'] . ':' . $node['port'] . '/core.whm');
-		$call = new WhmCall('list_tvh');
+		$whm->setUrl('http://' . $node['host'] . ':' . $node['port'] . '/');
+		$call = new WhmCall('core.whm', 'list_tvh');
 		$result = $whm->call($call);
 
 		if (!$result) {

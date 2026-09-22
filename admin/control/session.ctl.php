@@ -268,6 +268,7 @@ class SessionControl extends Control
 			return false;
 		}
 
+		$attr = array();
 		$attr['last_login'] = 'NOW()';
 		$attr['last_ip'] = $_SERVER['REMOTE_ADDR'];
 		daocall('admin_user', 'updateUser', array($username, $attr));

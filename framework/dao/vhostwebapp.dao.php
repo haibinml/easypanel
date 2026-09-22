@@ -11,6 +11,7 @@ class VhostwebappDAO extends DAO
 
 	public function add($user, $appid, $appname, $appver, $domain, $dir, $phy_dir)
 	{
+		$arr = array();
 		$arr['user'] = $user;
 		$arr['appid'] = $appid;
 		$arr['domain'] = $domain;

@@ -30,6 +30,7 @@ class DnsControl extends Control
 		$lt = time();
 
 		if (300 < abs($t - $lt)) {
+			$json = array();
 			$json['error'] = '服务器时间相差超过5分钟';
 			whm_return(200, $json);
 		}
@@ -52,7 +53,7 @@ class DnsControl extends Control
 	public function domain_update()
 	{
 		$json['status'] = 400;
-		$name = trim($_REQUEST['name']);
+		$name = trim(ep_request('name'));
 
 		if (!$name) {
 			$json['msg'] = 'params(name) empty';
@@ -82,6 +83,7 @@ class DnsControl extends Control
 	public function domain_add()
 	{
 		$json['status'] = 400;
+		$arr = array();
 		$arr['name'] = trim(ep_request('name'));
 
 		if (!$arr['name']) {
@@ -137,7 +139,7 @@ class DnsControl extends Control
 	 */
 	public function domain_del()
 	{
-		$name = trim($_REQUEST['name']);
+		$name = trim(ep_request('name'));
 		$json['status'] = 400;
 
 		if (!$name) {
@@ -279,6 +281,7 @@ class DnsControl extends Control
 			$arr['prio'] = intval($_REQUEST['prio']);
 		}
 
+		$attr = array();
 		$attr['name'] = $arr['domain'];
 		$fields = array('max_record');
 		$max = daocall('domains', 'getDomain', array($attr, $fields));

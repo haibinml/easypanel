@@ -89,6 +89,7 @@ class AccessControl extends Control
 		case 1:
 			if ($chain == false) {
 				$access->addTable(DENY_FILTER_TABLE);
+				$models = array();
 				$models['acl_self_ports'] = array('v' => PROT, 'split'=>'|');
 				$access->addChain(BEGIN, array('action' => ACTION, 'name' => DENY_FILTER_TABLE), $models);
 				header('Location: ?c=access&a=filterFrom');
@@ -105,6 +106,7 @@ class AccessControl extends Control
 		daocall('filter', 'add', array($filter));
 		$keyword = daocall('filter', 'listFilter', array());
 		$content = apicall('utils', 'mergeKeyword', array($keyword));
+		$arr = array();
 		$arr['action'] = 'deny';
 		$models['acl_header'] = array('header' => 'content-type', 'val' => 'text/*', 'regex' => 1);
 		$models['mark_content'] = array('content' => $content, 'charset' => 'utf-8');

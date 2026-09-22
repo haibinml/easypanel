@@ -21,6 +21,7 @@ class SpeedControl extends Control
 
 		if ($result) {
 			$id = 0;
+			$sp = array();
 
 			foreach ($result->children() as $chain) {
 				foreach ($chain->children() as $ch) {
@@ -79,7 +80,7 @@ class SpeedControl extends Control
 
 		$limit *= 1024;
 
-		switch (trim($_REQUEST['mode'])) {
+		switch (trim(ep_request('mode'))) {
 		case 'speed_limit':
 			if ($_REQUEST['min_size']) {
 				$min_size = intval($_REQUEST['min_size']);
@@ -89,6 +90,7 @@ class SpeedControl extends Control
 			}
 
 			$min_size *= 1024;
+			$models = array();
 			$models['mark_speed_limit'] = array('min_size' => $min_size, 'limit' => $limit);
 			break;
 
@@ -112,6 +114,7 @@ class SpeedControl extends Control
 			$models['acl_path'] = array('path' => $path);
 		}
 
+		$arr = array();
 		$arr['action'] = 'continue';
 
 		if ($this->access->addChain(TABLENAME, $arr, $models)) {

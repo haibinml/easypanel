@@ -254,6 +254,7 @@ class PhpsetControl extends Control
 		}
 
 		$list = [];
+		$param_val = array();
 		foreach($this->php_configs as $name=>$row){
 			if(strpos($templete_data, $name)!==false && preg_match("/$name = (.*)/", $templete_data, $param_val)){
 				$row['dvalue'] = $param_val[1];
@@ -315,6 +316,7 @@ class PhpsetControl extends Control
 
 		@unlink($this->ini_dir.'/php-'.$vhost.'.ini');
 
+		$arr = array();
 		$arr['value'] = '1,cmd:' . $v . ',*';
 
 		if (!apicall('vhost', 'updateInfo', array($vhost, '1,php', $arr, 3))) {

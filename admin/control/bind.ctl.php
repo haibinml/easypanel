@@ -40,6 +40,7 @@ class BindControl extends Control
 	public function bindInstallSelect()
 	{
 		$bind_dir = $this->bind_dir;
+		$json = array();
 		$json['code'] = 400;
 
 		if (file_exists($bind_dir . 'sbin/named')) {

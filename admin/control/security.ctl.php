@@ -25,12 +25,12 @@ class SecurityControl extends Control
 	 */
 	public function add()
 	{
-		daocall('setting', 'add', array('allow_login_ip', trim($_REQUEST['allow_login_ip'])));
-		daocall('setting', 'add', array('allow_login_time', trim($_REQUEST['allow_login_time'])));
-		daocall('setting', 'add', array('admin_login_img', trim($_REQUEST['admin_login_img'])));
-		daocall('setting', 'add', array('admin_login_img_sum', trim($_REQUEST['admin_login_img_sum'])));
-		daocall('setting', 'add', array('vhost_login_img', trim($_REQUEST['vhost_login_img'])));
-		daocall('setting', 'add', array('vhost_login_img_sum', trim($_REQUEST['vhost_login_img_sum'])));
+		daocall('setting', 'add', array('allow_login_ip', trim(ep_request('allow_login_ip'))));
+		daocall('setting', 'add', array('allow_login_time', trim(ep_request('allow_login_time'))));
+		daocall('setting', 'add', array('admin_login_img', trim(ep_request('admin_login_img'))));
+		daocall('setting', 'add', array('admin_login_img_sum', trim(ep_request('admin_login_img_sum'))));
+		daocall('setting', 'add', array('vhost_login_img', trim(ep_request('vhost_login_img'))));
+		daocall('setting', 'add', array('vhost_login_img_sum', trim(ep_request('vhost_login_img_sum'))));
 		header('Location:?c=security&a=addFrom&success=1');
 		exit();
 	}

@@ -16,6 +16,7 @@ class ShellControl extends Control
 	 */
 	public function wget()
 	{
+		$arr = array();
 		$arr['url'] = filterParam($_REQUEST['url'], 'url');
 
 		if ($arr['url'] == '') {
@@ -41,6 +42,7 @@ class ShellControl extends Control
 	 */
 	public function mysqldumpout()
 	{
+		$attr = array();
 		$attr['passwd'] = filterParam($_REQUEST['passwd']);
 
 		if ($attr['passwd'] == '') {
@@ -159,6 +161,7 @@ class ShellControl extends Control
 		$vh = getRole('vhost');
 		$session = filterParam($_REQUEST['session']);
 		$result = apicall('shell', 'query', array($session, $vh));
+		$ret = array();
 
 		if ($result === false) {
 			$ret['code'] = '500';

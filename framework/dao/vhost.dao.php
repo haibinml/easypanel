@@ -53,6 +53,7 @@ class VhostDAO extends DAO
 	 */
 	public function setRecordid($name, $recordid)
 	{
+		$arr = array();
 		$arr['recordid'] = $recordid;
 		return $this->update($arr, $this->getFieldValue2('name', $name));
 	}

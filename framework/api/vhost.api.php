@@ -20,6 +20,7 @@ class VhostAPI extends API
 
 	public function getByName($name)
 	{
+		$arr = array();
 		$arr['name'] = $name;
 		$type = 'row';
 		return $this->get($arr, $type);
@@ -32,6 +33,7 @@ class VhostAPI extends API
 
 	public function setByName($name, $arr)
 	{
+		$where = array();
 		$where['name'] = $name;
 		return $this->set($where, $arr);
 	}
@@ -259,6 +261,7 @@ class VhostAPI extends API
 			return false;
 		}
 
+		$ret = array();
 		$ret['web_limit'] = (string) $result->get('quota_limit');
 		$ret['web_used'] = (string) $result->get('quota_used');
 

@@ -18,7 +18,7 @@ class AccessAPI extends API
 
 	public function checkEntAccess()
 	{
-		$host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
+		$host = $_SERVER['HTTP_HOST'];
 		$hostarr = explode(':', $host);
 		$host = $hostarr[0];
 

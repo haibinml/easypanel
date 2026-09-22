@@ -14,6 +14,7 @@ class DnssyncAPI extends API
 			$dns_sync_number = 0;
 		}
 
+		$post_arr = array();
 		$post_arr['number'] = $dns_sync_number;
 		$post_arr['ep_version'] = EASYPANEL_VERSION;
 		$opts = array(
@@ -105,6 +106,7 @@ class DnssyncAPI extends API
 		$result = file_get_contents($url, false);
 
 		if ($result === false) {
+			$json = array();
 			$json['code'] = 500;
 			$json['error'] = '查询同步版本信息出错';
 			return $json;
@@ -159,6 +161,7 @@ class DnssyncAPI extends API
 
 		$a = 'sync_record';
 		$whmCall = $this->getWhmUrl($a);
+		$info = array();
 		$info['domains'] = daocall('domains', 'domainList', array());
 
 		if (count($info['domains']) <= 0) {

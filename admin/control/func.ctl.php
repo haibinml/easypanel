@@ -23,6 +23,7 @@ class FuncControl extends control
 
 	public function resetCrontab()
 	{
+		$json = array();
 		$json['code'] = 200;
 		unset($GLOBALS['cmd_run_error']);
 		@apicall('cron', 'system_del', array('ep_sync_flow'));
@@ -54,8 +55,11 @@ class FuncControl extends control
 	public function changeLoghandle()
 	{
 		$log = intval($_REQUEST['log_handle']);
+		$where_arr = array();
 		$where_arr['log_handle'] = $log == 1 ? 0 : 1;
+		$arr = array();
 		$arr['log_handle'] = $log;
+		$json = array();
 		$json['code'] = 400;
 
 		if (@apicall('vhost', 'updateAll', array($arr, $where_arr))) {
@@ -79,8 +83,10 @@ class FuncControl extends control
 	public function changeFtp()
 	{
 		$ftp = intval($_REQUEST['ftp']);
-		$where_arr = [];
+		$where_arr = array();
+		$arr = array();
 		$arr['ftp'] = $ftp;
+		$json = array();
 		$json['code'] = 400;
 
 		if (@apicall('vhost', 'updateAll', array($arr, $where_arr))) {
@@ -93,8 +99,10 @@ class FuncControl extends control
 	public function changeFtpConnect()
 	{
 		$ftp_connect = intval($_REQUEST['ftp_connect']);
+		$arr = array();
 		$arr['ftp_connect'] = $ftp_connect;
 		$where_arr = null;
+		$json = array();
 		$json['code'] = 400;
 
 		if (@apicall('vhost', 'updateAll', array($arr, $where_arr))) {
@@ -107,8 +115,10 @@ class FuncControl extends control
 	public function changeFtpusl()
 	{
 		$ftp_usl = intval($_REQUEST['ftp_usl']);
+		$arr = array();
 		$arr['ftp_usl'] = $ftp_usl;
 		$where_arr = null;
+		$json = array();
 		$json['code'] = 400;
 
 		if (@apicall('vhost', 'updateAll', array($arr, $where_arr))) {
@@ -121,8 +131,10 @@ class FuncControl extends control
 	public function changeFtpdsl()
 	{
 		$ftp_dsl = intval($_REQUEST['ftp_dsl']);
+		$arr = array();
 		$arr['ftp_dsl'] = $ftp_dsl;
 		$where_arr = null;
+		$json = array();
 		$json['code'] = 400;
 
 		if (@apicall('vhost', 'updateAll', array($arr, $where_arr))) {
@@ -135,8 +147,10 @@ class FuncControl extends control
 	public function changeHtaccess()
 	{
 		$htaccess = intval($_REQUEST['htaccess']) == 1 ? '.htaccess' : null;
+		$arr = array();
 		$arr['htaccess'] = $htaccess;
 		$where_arr = null;
+		$json = array();
 		$json['code'] = 400;
 
 		if (@apicall('vhost', 'updateAll', array($arr, $where_arr))) {

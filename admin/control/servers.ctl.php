@@ -4,9 +4,10 @@ class ServersControl extends Control
 {
 	public function serverAdd()
 	{
-		$arr['server'] = trim($_REQUEST['server']);
+		$arr = array();
+		$arr['server'] = trim(ep_request('server'));
 		$arr['master'] = intval($_REQUEST['master']);
-		$arr['ns'] = trim($_REQUEST['ns']);
+		$arr['ns'] = trim(ep_request('ns'));
 		if ($arr['server'] == '' || $arr['ns'] == '') {
 			exit('名称,ns/不能为空');
 		}
@@ -54,6 +55,7 @@ class ServersControl extends Control
 	{
 		$servers = daocall('servers', 'serverGet', array());
 		$count = is_array($servers) ? count($servers) : 0;
+		$info = array();
 		$info['count'] = $count;
 		$info['servers'] = $servers;
 		$info = json_encode($info);
@@ -62,11 +64,11 @@ class ServersControl extends Control
 
 	public function serverUpdate()
 	{
-		$arr['ns'] = trim($_REQUEST['ns']);
-		$oldserver = trim($_REQUEST['oldserver']);
+		$arr['ns'] = trim(ep_request('ns'));
+		$oldserver = trim(ep_request('oldserver'));
 
 		if ($_REQUEST['newserver']) {
-			$arr['server'] = trim($_REQUEST['newserver']);
+			$arr['server'] = trim(ep_request('newserver'));
 		}
 
 		if (!$arr['ns']) {
@@ -126,7 +128,7 @@ class ServersControl extends Control
 
 	public function serverDel()
 	{
-		$server = trim($_REQUEST['server']);
+		$server = trim(ep_request('server'));
 
 		if ($server == '') {
 			exit('error');

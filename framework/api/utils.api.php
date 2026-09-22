@@ -57,6 +57,7 @@ class UtilsAPI extends API
 	 */
 	public function is_ipv4($str)
 	{
+		$p = array();
 		preg_match('/^http\\:\\/\\/\\d+?[.]\\d+?[.]\\d+?[.]\\d+?[\\/]?$|\\d+?[.]\\d+?[.]\\d+?[.]\\d+?/', $str, $p);
 		return $p ? true : false;
 	}
@@ -282,7 +283,8 @@ class UtilsAPI extends API
 
 	public function mergeKeyword($keyword)
 	{
-		foreach ($keyword as $key) {
+		$va = '';
+		foreach (ep_iter($keyword) as $key) {
 			$va = '(' . $key['value'] . ')' . '|' . $va;
 		}
 

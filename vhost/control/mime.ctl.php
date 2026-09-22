@@ -7,9 +7,11 @@ class MimeControl extends Control
 		$mimes = daocall('vhostinfo', 'getInfo', array(getRole('vhost'), 5));
 
 		if (is_array($mimes) && 0 < count($mimes)) {
+			$mime = array();
+
 			foreach ($mimes as $m) {
 				$exp = explode(',', $m['value']);
-				$mime[] = array('file_ext' => $m['name'], 'mime_type' => $exp[0], 'cache_time' => $exp[2], 'gzip' => $exp[1]);
+				$mime[] = array('file_ext' => $m['name'], 'mime_type' => $exp[0], 'cache_time' => isset($exp[2]) ? $exp[2] : '', 'gzip' => isset($exp[1]) ? $exp[1] : '');
 			}
 
 			$this->_tpl->assign('mime', $mime);
@@ -82,6 +84,7 @@ class MimeControl extends Control
 
 		$cache_time = intval($_REQUEST['cache_time']);
 		$gzip = intval($_REQUEST['gzip']);
+		$arr = array();
 		$arr['name'] = $file_ext;
 		$arr['value'] = $mime_type . ',' . $gzip . ',' . $cache_time;
 

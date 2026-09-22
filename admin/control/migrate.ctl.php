@@ -63,6 +63,7 @@ class MigrateControl extends Control
 
 	private function migrate_result($code, $msg = null)
 	{
+		$ret = array();
 		$ret['code'] = $code;
 		$ret['out'] = $msg;
 		exit(json_encode($ret));
@@ -144,6 +145,7 @@ class MigrateControl extends Control
 			$this->migrate_result(500, '该账号没有在本地创建');
 		}
 
+		$arr = array();
 		$arr['file'] = $vh . WEB_FILE_EXT;
 		$call = 'restore_web';
 		$result = apicall('shell', 'whmshell', array($call, $this->setting['migrate_prefix'] . $vh, $arr));

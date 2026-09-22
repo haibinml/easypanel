@@ -30,6 +30,7 @@ class SqlsrvDbProduct extends DbProduct
 		}
 
 		$db_path = str_replace('/', '\\', $vhost['doc_root']) . '\\database\\';
+		$sql = array();
 		$sql[] = 'ALTER DATABASE ' . $user . ' MODIFY FILE (NAME=' . $user . ',FILENAME=\'' . $db_path . $user . '.ss\',MAXSIZE=' . $vhost['db_quota'] . 'MB,SIZE=5MB)';
 		return $this->query($sql);
 	}

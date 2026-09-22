@@ -21,6 +21,7 @@ class AntisqlControl extends Control
 
 		if ($result) {
 			$id = 0;
+			$sql = array();
 
 			foreach ($result->children() as $chain) {
 				foreach ($chain->children() as $ch) {
@@ -49,11 +50,13 @@ class AntisqlControl extends Control
 			return $this->_tpl->fetch('msg.html');
 		}
 
-		$param_value = trim($_REQUEST['param_value']);
-		$charset = $_REQUEST['charset'] ? trim($_REQUEST['charset']) : 'utf-8';
+		$param_value = trim(ep_request('param_value'));
+		$charset = $_REQUEST['charset'] ? trim(ep_request('charset')) : 'utf-8';
 		$param_get = 1;
 		$param_post = 1;
+		$arr = array();
 		$arr['action'] = 'deny';
+		$models = array();
 		$models['mark_param'] = array('value' => $param_value, 'charset' => $charset, 'get' => $param_get, 'post' => $param_post);
 
 		if ($this->access->addChain(SQL_TABLE_NAME, $arr, $models)) {

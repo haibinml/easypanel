@@ -66,7 +66,6 @@ class VhostproductControl extends Control
 	public function refreshTemplete()
 	{
 		apicall('whm', 'refreshTemplete', array($_REQUEST['name']));
-		$this->showTemplete();
 	}
 
 	public function ajaxListSubTemplete()

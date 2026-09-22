@@ -39,6 +39,7 @@ class AnticcControl extends Control
 							$msg = @file_get_contents($user['doc_root'] . '/access.xml');
 						}
 						$mode = 'redirect';
+						$match = array();
 						if (preg_match('/<html\s+id=[\'\"]anticc_([^\'\"]+)[\'\"]/', $msg, $match)) {
 							$mode = $match[1];
 						}
@@ -116,7 +117,7 @@ class AnticcControl extends Control
 			exit($check_result);
 		}
 
-		$mode = trim($_REQUEST['mode']);
+		$mode = trim(ep_request('mode'));
 		$mode_list = $this->anticc_mode();
 		if(!array_key_exists($mode, $mode_list))exit('未知防护模式');
 		$msg = $mode_list[$mode]['html'];
@@ -143,8 +144,10 @@ class AnticcControl extends Control
 		$wl = 1;
 		$fix_url = 1;
 		$skip_cache = 1;
+		$arr = array();
 		$arr['action'] = 'continue';
 		$arr['name'] = TABLENAME;
+		$modeles = array();
 		if(!empty($ipdata)){
 			$modeles['acl_srcs'] = array('revers' => 1, 'split' => '|', 'v' => $ipdata);
 		}

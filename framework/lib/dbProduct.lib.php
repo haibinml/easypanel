@@ -18,6 +18,7 @@ abstract class DbProduct
 
 	public function add($uid, $passwd)
 	{
+		$vhost = array();
 		$vhost['db_name'] = $uid;
 		$vhost['passwd'] = $passwd;
 		return $this->create($vhost);

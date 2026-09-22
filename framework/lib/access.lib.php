@@ -172,7 +172,7 @@ class Access
 		if ($models) {
 			foreach ($models as $name => $val) {
 				if (strpos($name, '#') !== false) {
-					$name = explode('#', $name, 2)[0];
+					$name = explode('#', $name)[0];
 				}
 				if (isset($val[0])) {
 					foreach ($val as $v) {

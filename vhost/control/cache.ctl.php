@@ -58,6 +58,9 @@ class CacheControl extends Control
 
 	public function cacheFrom()
 	{
+		$file = array();
+		$url = array();
+		$header = array();
 		$this->cacheGetChain($file, $url, $header);
 		if ($file && 0 < count($file)) {
 			$this->_tpl->assign('file', $file);
@@ -85,7 +88,7 @@ class CacheControl extends Control
 	public function cacheAdd()
 	{
 		$mode = $_REQUEST['mode'];
-		$cache_value = trim($_REQUEST['cache_value']);
+		$cache_value = trim(ep_request('cache_value'));
 
 		if ($cache_value == '') {
 			exit('值不能为空');
@@ -111,8 +114,10 @@ class CacheControl extends Control
 			exit('error');
 		}
 
-		$max_age = trim($_REQUEST['max_age']);
+		$max_age = trim(ep_request('max_age'));
+		$arr = array();
 		$arr['action'] = 'continue';
+		$modeles = array();
 		$modeles['acl_' . $mode] = $acl_mode;
 		$modeles['mark_cache_control'] = array('max_age' => $max_age, 'static' => $_REQUEST['static']);
 

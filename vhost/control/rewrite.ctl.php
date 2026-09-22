@@ -21,6 +21,7 @@ class RewriteControl extends Control
 
 		if ($result) {
 			$id = 0;
+			$res = array();
 
 			foreach ($result->children() as $chain) {
 				$res[$id] = array();
@@ -60,8 +61,8 @@ class RewriteControl extends Control
 
 	public function rewriteAdd()
 	{
-		$src_host = trim($_POST['host']);
-		$dst_host = trim($_POST['dst']);
+		$src_host = trim(ep_request('host'));
+		$dst_host = trim(ep_request('dst'));
 		$code = intval($_POST['code']);
 		if ($src_host == '' || $dst_host == '') {
 			exit('域名不能为空');
@@ -85,7 +86,9 @@ class RewriteControl extends Control
 		$wide = false;
 		if(substr($src_host,0,2)=='*.' || $src_host=='*')$wide = true;
 
+		$arr = array();
 		$arr['action'] = 'continue';
+		$modeles = array();
 		if($code == 0){
 			if($wide){
 				$modeles['mark_host_rewrite'] = array('reg_host' => str_replace(array('.','*'),array('\\.','(.*)'),$src_host), 'host' => str_replace('*','$1',$dst_host), 'port' => '0', 'life_time' => '0', 'proxy' => '0', 'rewrite' => '1');
@@ -150,6 +153,7 @@ class RewriteControl extends Control
 			if($find_result){
 				$arr['action'] = 'continue';
 				$arr['name'] = '!ssl_rewrite';
+				$models = array();
 				$models['mark_url_rewrite'] = array('url' => '^http://(.*)$', 'dst' => 'https://$1', 'nc' => '1', 'code' => '301');
 				$this->access->addChain('BEGIN', $arr, $models);
 			}

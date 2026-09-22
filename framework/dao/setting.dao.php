@@ -11,6 +11,7 @@ class SettingDAO extends DAO
 
 	public function add($name, $value)
 	{
+		$arr = array();
 		$arr['name'] = $name;
 		$arr['value'] = $value;
 		return $this->insert($arr, 'REPLACE');

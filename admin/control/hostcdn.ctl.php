@@ -41,6 +41,7 @@ class HostcdnControl extends control
 
 	public function addHostcdn()
 	{
+		$arr = array();
 		$arr['action'] = 'continue';
 		$v = trim(ep_str(isset($_REQUEST['v']) ? $_REQUEST['v'] : ''));
 		$host = trim(ep_str(isset($_REQUEST['host']) ? $_REQUEST['host'] : ''));
@@ -52,6 +53,7 @@ class HostcdnControl extends control
 			exit('端口范围必须为1-65535');
 		}
 
+		$models = array();
 		$models['acl_host'] = array('v' => $v);
 		$models['mark_host'] = array('host' => $host, 'port' => $port, 'proxy' => 1);
 		$access = new Access();

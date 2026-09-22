@@ -4,9 +4,11 @@ class SlaveControl extends Control
 {
 	public function checkSlave()
 	{
-		$arr['slave'] = trim($_REQUEST['slave']);
-		$arr['server'] = trim($_REQUEST['server']);
+		$arr = array();
+		$arr['slave'] = trim(ep_request('slave'));
+		$arr['server'] = trim(ep_request('server'));
 		$slave = daocall('slaves', 'slavesGet', array($arr));
+		$json = array();
 		$json['code'] = 400;
 
 		if (!is_array($slave) || !$slave) {
@@ -14,6 +16,7 @@ class SlaveControl extends Control
 			exit(json_encode($json));
 		}
 
+		$node = array();
 		$node['host'] = $arr['slave'];
 		$node['skey'] = $slave['skey'];
 		if (!$node['host'] || !$node['skey']) {
@@ -41,10 +44,10 @@ class SlaveControl extends Control
 
 	public function slaveAdd()
 	{
-		$arr['server'] = trim($_REQUEST['server']);
-		$arr['slave'] = trim($_REQUEST['slave']);
-		$arr['ns'] = trim($_REQUEST['ns']);
-		$arr['skey'] = trim($_REQUEST['skey']);
+		$arr['server'] = trim(ep_request('server'));
+		$arr['slave'] = trim(ep_request('slave'));
+		$arr['ns'] = trim(ep_request('ns'));
+		$arr['skey'] = trim(ep_request('skey'));
 		if ($arr['server'] == '' || $arr['slave'] == '' || $arr['ns'] == '' || $arr['skey'] == '') {
 			exit('参数错误');
 		}
@@ -75,7 +78,8 @@ class SlaveControl extends Control
 			exit('请先添加主服务器');
 		}
 
-		$where_arr['server'] = trim($_REQUEST['server']);
+		$where_arr = array();
+		$where_arr['server'] = trim(ep_request('server'));
 		$list = daocall('slaves', 'slavePageList', array($page, $page_count, &$count, $where_arr));
 		$total_page = ceil($count / $page_count);
 
@@ -94,8 +98,8 @@ class SlaveControl extends Control
 
 	public function slaveDel()
 	{
-		$server = trim($_REQUEST['server']);
-		$slave = trim($_REQUEST['slave']);
+		$server = trim(ep_request('server'));
+		$slave = trim(ep_request('slave'));
 		if ($server == '' || $slave == '') {
 			exit('值不能为空');
 		}
@@ -109,10 +113,10 @@ class SlaveControl extends Control
 
 	public function slaveUpdate()
 	{
-		$arr['server'] = trim($_REQUEST['server']);
-		$arr['slave'] = trim($_REQUEST['slave']);
-		$arr['ns'] = trim($_REQUEST['ns']);
-		$arr['skey'] = trim($_REQUEST['skey']);
+		$arr['server'] = trim(ep_request('server'));
+		$arr['slave'] = trim(ep_request('slave'));
+		$arr['ns'] = trim(ep_request('ns'));
+		$arr['skey'] = trim(ep_request('skey'));
 		$oldslave = $_REQUEST['oldslave'];
 
 		if (!$oldslave) {
@@ -140,7 +144,7 @@ class SlaveControl extends Control
 	 */
 	public function slaveGet()
 	{
-		$arr['server'] = trim($_REQUEST['server']);
+		$arr['server'] = trim(ep_request('server'));
 
 		if (!$arr['server']) {
 			exit('请输入服务器名称');

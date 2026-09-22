@@ -16,7 +16,7 @@ class CachecleanControl extends Control
 
 	public function cacheclean()
 	{
-		$url = trim($_REQUEST['url']);
+		$url = trim(ep_request('url'));
 		$url = rtrim($url, ',');
 
 		if ($url == '') {

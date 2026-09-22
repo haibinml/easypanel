@@ -14,6 +14,7 @@ class NodesControl extends Control
 
 	public function testDnsdun()
 	{
+		$json = array();
 		$json['code'] = 400;
 		$domain = ep_request('domain') ? ep_request('domain') : null;
 		$domainkey = ep_request('domainkey') ? ep_request('domainkey') : null;
@@ -181,7 +182,7 @@ class NodesControl extends Control
 	 */
 	public function edit()
 	{
-		$name = trim($_REQUEST['name']);
+		$name = trim(ep_request('name'));
 
 		if (!$_REQUEST['dev']) {
 			header('Location:?c=nodes&a=editForm&e=dev&name=' . $name);
@@ -189,19 +190,19 @@ class NodesControl extends Control
 		}
 
 		daocall('setting', 'add', array('logs_day', intval($_REQUEST['logs_day'])));
-		daocall('setting', 'add', array('view_dir', trim($_REQUEST['view_dir'])));
+		daocall('setting', 'add', array('view_dir', trim(ep_request('view_dir'))));
 		daocall('setting', 'add', array('domain_note', $_REQUEST['domain_note']));
 		daocall('setting', 'add', array('footer', $_REQUEST['footer']));
-		daocall('setting', 'add', array('ftp_port', trim($_REQUEST['ftp_port'])));
-		daocall('setting', 'add', array('ftp_pasv_port', trim($_REQUEST['ftp_pasv_port'])));
+		daocall('setting', 'add', array('ftp_port', trim(ep_request('ftp_port'))));
+		daocall('setting', 'add', array('ftp_pasv_port', trim(ep_request('ftp_pasv_port'))));
 		daocall('setting', 'add', array('no_del_data', intval($_REQUEST['no_del_data'])));
 
 		if ($_REQUEST['skey']) {
-			daocall('setting', 'add', array('skey', trim($_REQUEST['skey'])));
+			daocall('setting', 'add', array('skey', trim(ep_request('skey'))));
 		}
 
 		daocall('setting', 'add', array('webalizer', $_REQUEST['webalizer']));
-		daocall('setting', 'add', array('vhost_domain', trim($_REQUEST['vhost_domain'])));
+		daocall('setting', 'add', array('vhost_domain', trim(ep_request('vhost_domain'))));
 		daocall('setting', 'add', array('dnsdundomain', $_REQUEST['dnsdundomain']));
 		daocall('setting', 'add', array('dnsdundomainkey', $_REQUEST['dnsdundomainkey']));
 		daocall('setting', 'add', array('cname_host', $_REQUEST['cname_host']));
@@ -222,13 +223,13 @@ class NodesControl extends Control
 			daocall('setting', 'add', array('title', $_REQUEST['title']));
 		}
 
-		$GLOBALS['node_cfg'][$name]['db_user'] = trim($_REQUEST['db_user']);
-		$GLOBALS['node_cfg'][$name]['dev'] = trim($_REQUEST['dev']);
-		$GLOBALS['node_cfg'][$name]['ep_port'] = $_REQUEST['ep_port'] ? trim($_REQUEST['ep_port']) : '3312';
-		$GLOBALS['node_cfg'][$name]['port'] = $_REQUEST['port'] ? trim($_REQUEST['port']) : '3311';
-		$GLOBALS['node_cfg'][$name]['db_port'] = $_REQUEST['db_port'] ? trim($_REQUEST['db_port']) : '3306';
-		$GLOBALS['node_cfg'][$name]['db_host'] = $_REQUEST['db_host'] ? trim($_REQUEST['db_host']) : 'localhost';
-		$db_result = apicall('utils', 'fixPriv', array($_REQUEST['db_host'], trim($_REQUEST['db_user']), $GLOBALS['node_cfg'][$name]['db_passwd'], $_REQUEST['db_passwd']));
+		$GLOBALS['node_cfg'][$name]['db_user'] = trim(ep_request('db_user'));
+		$GLOBALS['node_cfg'][$name]['dev'] = trim(ep_request('dev'));
+		$GLOBALS['node_cfg'][$name]['ep_port'] = $_REQUEST['ep_port'] ? trim(ep_request('ep_port')) : '3312';
+		$GLOBALS['node_cfg'][$name]['port'] = $_REQUEST['port'] ? trim(ep_request('port')) : '3311';
+		$GLOBALS['node_cfg'][$name]['db_port'] = $_REQUEST['db_port'] ? trim(ep_request('db_port')) : '3306';
+		$GLOBALS['node_cfg'][$name]['db_host'] = $_REQUEST['db_host'] ? trim(ep_request('db_host')) : 'localhost';
+		$db_result = apicall('utils', 'fixPriv', array($_REQUEST['db_host'], trim(ep_request('db_user')), $GLOBALS['node_cfg'][$name]['db_passwd'], $_REQUEST['db_passwd']));
 
 		if ($db_result) {
 			$GLOBALS['node_cfg'][$name]['db_passwd'] = $_REQUEST['db_passwd'];
@@ -238,9 +239,9 @@ class NodesControl extends Control
 			apicall('nodes', 'delMysqlTestDatabase', array('localhost'));
 		}
 
-		$GLOBALS['node_cfg'][$name]['sqlsrv_user'] = trim($_REQUEST['sqlsrv_user']);
+		$GLOBALS['node_cfg'][$name]['sqlsrv_user'] = trim(ep_request('sqlsrv_user'));
 		$GLOBALS['node_cfg'][$name]['sqlsrv_passwd'] = $_REQUEST['sqlsrv_passwd'];
-		$GLOBALS['node_cfg'][$name]['sqlsrv_port'] = $_REQUEST['sqlsrv_port'] ? trim($_REQUEST['sqlsrv_port']) : '1433';
+		$GLOBALS['node_cfg'][$name]['sqlsrv_port'] = $_REQUEST['sqlsrv_port'] ? trim(ep_request('sqlsrv_port')) : '1433';
 		$result = apicall('utils', 'writeConfig', array($GLOBALS['node_cfg'], 'name', 'node', $GLOBALS['safe_dir']));
 
 		if (!$result) {

@@ -69,6 +69,7 @@ function db_pages($sql, $page = 1, $page_size = 10, $total = null)
 	$dbenv = &db_get_env();
 	$db = &$dbenv['dbconf'][$dbenv['host']];
 
+	$matches = array();
 	if (preg_match('/^([\\s]*SELECT[\\s]+)([\\s\\S]+)([\\s]+FROM[\\s]+[\\s\\S]+[\\s]+WHERE[\\s]+[\\s\\S]+[\\s]*)$/i', $sql, $matches)) {
 		$parsesql = array();
 		$parsesql['cmd'] = 'SELECT';

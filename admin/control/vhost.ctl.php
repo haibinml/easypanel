@@ -43,7 +43,7 @@ class VhostControl extends Control
 				}
 			}
 			else {
-				$search_key['name'] = $name;
+				$search_key = array('name' => $name);
 			}
 		}
 
@@ -75,6 +75,8 @@ class VhostControl extends Control
 		$products = daocall('product', 'getProducts');
 		$counts = is_array($products) ? count($products) : 0;
 		$this->_tpl->assign('count', $count);
+
+		$p = array();
 
 		if (is_array($products)) {
 			foreach ($products as $product) {
@@ -117,6 +119,7 @@ class VhostControl extends Control
 	public function del()
 	{
 		$vhost = trim(ep_request('name'));
+		$json = array();
 		$json['code'] = 400;
 		@apicall('cdn', 'delCdnAccessFile', array($vhost));
 

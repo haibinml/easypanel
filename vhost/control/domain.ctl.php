@@ -15,12 +15,7 @@ class DomainControl extends Control
 	public function show()
 	{
 		$vhost = getRole('vhost');
-		$user = isset($_SESSION['user'][$vhost]) ? $_SESSION['user'][$vhost] : array();
-
-		if (!is_array($user)) {
-			$user = array();
-		}
-
+		$user = $_SESSION['user'][$vhost];
 		$cname_host = daocall('setting', 'get', array('cname_host'));
 
 		if ($cname_host) {
@@ -140,6 +135,7 @@ class DomainControl extends Control
 		$domain = strtolower(trim(ep_request('domain')));
 		$ret = daocall('vhostinfo', 'getInfo', array($vhost, 0, $domain));
 		if (is_array($ret) && !empty($ret[0])) {
+			$result = array();
 			$result['code'] = 0;
 			$value = $ret[0]['value'];
 			if ($user['cdn']) {
@@ -343,6 +339,7 @@ class DomainControl extends Control
 			$ret = apicall('vhost', 'addInfo', array($vhost, $domain, 0, $subdir));
 		}
 		else {
+			$arr = array();
 			$arr['value'] = $subdir;
 			$ret = apicall('vhost', 'updateInfo', array($vhost, $domain, $arr));
 		}

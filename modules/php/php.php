@@ -125,7 +125,7 @@ function php_cron($params)
 function php_call($params)
 {
 	if ($_REQUEST['op'] == 'php_version') {
-		$v = trim($_REQUEST['v']);
+		$v = trim(ep_request('v'));
 		if(empty($v))return false;
 		$vhost = getRole('vhost');
 		$ver = php_get_version();
@@ -135,6 +135,7 @@ function php_call($params)
 			@unlink('/vhs/kangle/phpini/php-'.$vhost.'.ini');
 		}
 
+		$arr = array();
 		$arr['value'] = '1,cmd:' . $v . ',*';
 
 		if (!apicall('vhost', 'updateInfo', array($vhost, '1,php', $arr, 3))) {
@@ -150,6 +151,7 @@ function php_get_cli_version()
 	if(file_exists('/usr/bin/php')){
 		$oripath = shell_exec('ls -al /usr/bin/php | awk \'{print $NF}\'');
 		if($oripath){
+			$match = array();
 			if(preg_match('!/ext/php(\d+)/bin/php!', $oripath, $match)){
 				return 'php'.$match[1];
 			}

@@ -79,6 +79,7 @@ class IndexControl extends Control
 
 	public function checkBind()
 	{
+		$json = array();
 		$json['code'] = 201;
 		$bind_dir = apicall('bind', 'getBindDir', array());
 		if (!file_exists($bind_dir) || is_win()) {

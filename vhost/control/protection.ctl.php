@@ -91,6 +91,7 @@ class ProtectionControl extends Control
 			return $this->show_msg('目录不能为空');
 		}
 
+		$models = array();
 		$models['acl_reg_path'] = array('path' => $path);
 
 		if ($_REQUEST['referer'] == '') {
@@ -104,6 +105,7 @@ class ProtectionControl extends Control
 			$models['mark_redirect'] = array('dst' => $_REQUEST['redirect'], 'internal' => 0, 'code' => 302);
 		}
 
+		$arr = array();
 		$arr['action'] = 'deny';
 		$access = new Access(getRole('vhost'));
 

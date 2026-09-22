@@ -197,6 +197,8 @@ class CronAPI extends API
 		}
 
 		$cmd .= '"';
+		$out = array();
+		$status = 0;
 		exec($cmd, $out, $status);
 		if ($status != 0 && $status != 0 - 1) {
 			$GLOBALS['cmd_run_error'] = 'cmd=' . $cmd . ' exec status=' . $status;

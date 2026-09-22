@@ -144,6 +144,7 @@ class Process
 			$env[$env_name] = $c;
 		}
 		$command = dirname($GLOBALS["safe_dir"]) . "/bin/runas.exe";
+		$pipes = array();
 		return proc_open($command, $descriptorspec, $pipes, null, $env, array("bypass_shell" => true));
 	}
 
@@ -193,6 +194,7 @@ class Process
 			$stderr_ds = array("pipe", "w");
 		}
 		$descriptorspec = array($stdin_ds, $stdout_ds, $stderr_ds);
+		$pipes = array();
 		$rs = proc_open($command, $descriptorspec, $pipes);
 		if ($vh) {
 			change_to_super();

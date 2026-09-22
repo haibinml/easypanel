@@ -68,6 +68,7 @@ class MigrateAPI extends API
 			return false;
 		}
 
+		$attr = array();
 		$attr['file'] = $save_dir . $vh . WEB_FILE_EXT;
 
 		if ($nolog == 1) {

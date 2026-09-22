@@ -56,6 +56,7 @@ class TestControl extends Control
 			array('pipe', 'w'),
 			array('pipe', 'w')
 			);
+		$pipes = array();
 		$rs = proc_open('D:\\project\\vhsnode\\Debug\\testcmd.exe | test .txt', $descriptorspec, $pipes, null, null, array('bypass_shell' => true));
 
 		if (is_resource($rs)) {

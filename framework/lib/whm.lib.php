@@ -116,8 +116,12 @@ class WhmResult
 
 	private function stdClassToArray($arr)
 	{
-		foreach ($arr as $a) {
-			$ar[] = (array) $a;
+		$ar = array();
+
+		if (is_array($arr) || is_object($arr)) {
+			foreach ($arr as $a) {
+				$ar[] = (array) $a;
+			}
 		}
 
 		return $ar;

@@ -114,7 +114,7 @@ class RewritesControl extends Control
 
 	public function getRule()
 	{
-		$name = trim($_REQUEST['name']);
+		$name = trim(ep_request('name'));
 		if($name == '0')exit('{"code":-1}');
 
 		if (!preg_match('/^[a-zA-Z0-9]+$/',$name)) exit('{"code":-1}');

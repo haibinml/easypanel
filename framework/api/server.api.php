@@ -4,6 +4,7 @@ class ServerAPI extends API
 	public function serverDel($server)
 	{
 		if (daocall('servers', 'serverDel', array($server))) {
+			$arr = array();
 			$arr['server'] = $server;
 			$slave = daocall('slaves', 'slavesGet', array($arr));
 

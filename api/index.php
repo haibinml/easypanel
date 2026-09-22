@@ -45,6 +45,7 @@ function whm_return($status, $ret = null)
 	$fmt = ep_request('fmt');
 
 	if ($json_flag == 1 || $fmt == 'json') {
+		$json = array();
 		$json['result'] = $status;
 
 		if ($ret) {

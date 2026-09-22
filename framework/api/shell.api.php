@@ -144,6 +144,7 @@ class ShellAPI extends API
 
 		$str .= "</vhs>\n";
 		$str .= "<!--configfileisok-->\n";
+		$cdnstr = array();
 		$cdnstr['msg'] = $str;
 		return $cdnstr;
 	}

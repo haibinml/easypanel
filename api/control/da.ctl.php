@@ -67,6 +67,7 @@ class DaControl extends Control
 			exit('error=0 text=Deleted');
 		}
 
+		$arr = array();
 		$arr['product_name'] = $_REQUEST['packagename'];
 		$arr['web_quota'] = $_REQUEST['quota'];
 		$arr['domain'] = $_REQUEST['nsubdomains'];
@@ -154,7 +155,7 @@ class DaControl extends Control
 			exit('product not found');
 		}
 
-		$vhost = trim($_REQUEST['user']);
+		$vhost = trim(ep_request('user'));
 
 		if (!$vhost) {
 			exit('param error');

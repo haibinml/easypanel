@@ -31,7 +31,7 @@ class DomainControl extends Control
 
 	public function domainDel()
 	{
-		$del_domain_name = trim($_REQUEST['domain_name']);
+		$del_domain_name = trim(ep_request('domain_name'));
 		$fp = fopen(SYS_ROOT . '/configs/reserv_domain.cfg.php', 'wt');
 
 		if (!$fp) {

@@ -29,6 +29,8 @@ function sys_linux()
 	}
 
 	$str = implode('', $str);
+	$buf = array();
+	$buffers = array();
 	preg_match_all('/MemTotal\\s{0,}\\:+\\s{0,}([\\d\\.]+).+?MemFree\\s{0,}\\:+\\s{0,}([\\d\\.]+).+?Cached\\s{0,}\\:+\\s{0,}([\\d\\.]+).+?SwapTotal\\s{0,}\\:+\\s{0,}([\\d\\.]+).+?SwapFree\\s{0,}\\:+\\s{0,}([\\d\\.]+)/s', $str, $buf);
 	preg_match_all('/Buffers\\s{0,}\\:+\\s{0,}([\\d\\.]+)/s', $str, $buffers);
 	$res['memTotal'] = round($buf[1][0] / 1024, 2);
@@ -68,6 +70,7 @@ function sys_windows()
 	}
 
 	$sysinfo = GetWMI($wmi, 'Win32_OperatingSystem', array('LastBootUpTime', 'TotalVisibleMemorySize', 'FreePhysicalMemory'));
+	$res = array();
 	$res['uptime'] = $sysinfo[0]['LastBootUpTime'];
 	$sys_ticks = 3600 * 8 + time() - strtotime(substr($res['uptime'], 0, 14));
 	$min = $sys_ticks / 60;

@@ -24,6 +24,7 @@ class WebftpControl extends Control
 	 */
 	public function editfrom()
 	{
+		$json = array();
 		$json['code'] = 400;
 		$filext = strtolower(substr($_REQUEST['file'], strripos($_REQUEST['file'], '.') + 1));
 		$array = array('001', '002', '003', '004', '005', '006', 'exe', 'msi', 'db', 'png', 'jpg', 'zip', '7z', 'bmp', 'gif', 'mov', 'wmv', 'rmvb', 'mpeg', 'avi', 'mp3', 'mp4', 'rm', 'dat', 'asf', 'flv', '3gp', 'divx', 'wmv', 'rar', 'zip', 'cab', 'jar', 'iso', 'gz', 'tar', 'bz2', 'ace', 'arj');
@@ -291,8 +292,8 @@ class WebftpControl extends Control
 
 	public function upsavenew()
 	{
-		$f_name = trim($_POST['f_name']);
-		$f_path = trim($_POST['f_path']);
+		$f_name = trim(ep_request('f_name'));
+		$f_path = trim(ep_request('f_path'));
 		$f_size = intval($_POST['f_size']);
 		$f_start = intval($_POST['f_start']);
 		$tmp_name = $_FILES['file']['tmp_name'];
@@ -439,7 +440,7 @@ class WebftpControl extends Control
 
 	public function mkdir()
 	{
-		$dir = $this->getphyfile(trim($_REQUEST['dir']));
+		$dir = $this->getphyfile(trim(ep_request('dir')));
 
 		if (@mkdir($dir)) {
 			if(is_ajax_request()) {
@@ -488,8 +489,8 @@ class WebftpControl extends Control
 
 	public function rename()
 	{
-		$oldname = $this->getphyfile(trim($_REQUEST['oldname']));
-		$newname = $this->getphyfile(trim($_REQUEST['newname']));
+		$oldname = $this->getphyfile(trim(ep_request('oldname')));
+		$newname = $this->getphyfile(trim(ep_request('newname')));
 
 		if (rename($oldname, $newname)) {
 			if(is_ajax_request()) {

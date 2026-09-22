@@ -10,6 +10,7 @@ class VhostinfoAPI extends API
 
 	public function add2($vhost, $name, $value, $type = 0)
 	{
+		$arr = array();
 		$arr['vhost'] = $vhost;
 		$arr['name'] = $name;
 		$arr['value'] = $value;
@@ -50,6 +51,7 @@ class VhostinfoAPI extends API
 
 	public function set2($vhost, $name, $type, $value)
 	{
+		$wherearr = array();
 		$wherearr['vhost'] = $vhost;
 		$wherearr['name'] = $name;
 		$wherearr['type'] = $type;

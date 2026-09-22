@@ -46,6 +46,8 @@ class FileAccess
 
 		$rows = $result->fetchAll(PDO::FETCH_ASSOC);
 
+		$files = array();
+
 		foreach ($rows as $row) {
 			$files[$row['file']] = $row['action'];
 		}
@@ -110,6 +112,7 @@ class FileAccess
 		}
 
 		if ($is_dir) {
+			$models = array();
 			$models['acl_dir'] = array('v' => $file);
 		}
 		else {
@@ -392,6 +395,7 @@ function splitdir($dir)
 function unescape($str)
 {
 	$str = ep_str($str);
+	$r = array();
 	preg_match_all('/%u.{4}|&#x.{4};|&#\\d+;|.+/sU', $str, $r);
 	$ar = $r[0];
 

@@ -47,6 +47,7 @@ class CdnAPI extends API
 		}
 
 		$vhostinfo = daocall('vhost', 'getVhost', array($vhost));
+		$poststr = array();
 		$poststr['info'] = base64_encode(json_encode($vhostinfo));
 		$domains = daocall('vhostinfo', 'getAll', array($vhost));
 

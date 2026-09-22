@@ -23,9 +23,11 @@ class ResponseControl extends control
 		}
 
 		$vhost = getRole('vhost');
+		$arr = array();
 		$arr['action'] = 'continue';
 		$arr['name'] = GZIPNAME;
 		$header = 'Content-Type';
+		$models = array();
 		$models['acl_header'] = array('header' => $header, 'val' => $val, 'regex' => 1);
 		$models['mark_response_flag'] = array('flagvalue' => 'compress');
 		$access = new Access(null, 'response');
